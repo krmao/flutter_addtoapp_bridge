@@ -10,7 +10,7 @@ This project is a starting point for a Flutter
 For help getting started with Flutter development, view the
 [online documentation](https://flutter.dev/docs), which offers tutorials, samples, guidance on mobile development, and a full API reference.
 
-## Create Flutter Plugin Project
+## [Create Flutter Plugin Project](https://docs.flutter.dev/development/packages-and-plugins/developing-packages#step-1-create-the-package-1)
 
 ```
 flutter create --org com.codesdancing.flutter.addtoapp.bridge --template=plugin --platforms=android,ios -a kotlin -i objc flutter_addtoapp_bridge=
