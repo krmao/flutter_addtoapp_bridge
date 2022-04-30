@@ -31,6 +31,16 @@ flutter build ios --no-codesign -v
 killall -9 dart
 ```
 
+## Flutter doc
+```shell
+~/fvm/versions/2.13.0-0.3.pre/bin/cache/dart-sdk/bin/resources/dartdoc
+```
+## Publish
+```shell
+flutter pub publish --dry-run
+flutter pub publish
+```
+
 ## Usage(flutter call android/ios)
 - dart
 ```
