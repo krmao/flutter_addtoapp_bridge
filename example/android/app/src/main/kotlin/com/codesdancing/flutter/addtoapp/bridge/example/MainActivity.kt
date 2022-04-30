@@ -12,7 +12,7 @@ class MainActivity : FlutterActivity() {
     companion object {
         init {
             FlutterAddtoappBridgePlugin.setOnGlobalMethodCall(object : FlutterAddtoappBridgePlugin.OnGlobalMethodCall {
-                override fun onCall(activity: Activity?, call: MethodCall, result: MethodChannel.Result) {
+                override fun onCall(activity: Activity?, call: MethodCall, result: MethodChannel.Result ) {
                     Log.d("onCall", "activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
                     if (call.method == "callPlatform") {
                         val argumentsWithFunctionNameArray = call.arguments as? ArrayList<*>
@@ -23,14 +23,13 @@ class MainActivity : FlutterActivity() {
                                 Log.d("onCall", "open-> url=${argumentsArray?.getOrNull(0)}, arguments=${argumentsArray?.getOrNull(1) as? String ?: ""}}")
                                 when (val url = argumentsArray?.getOrNull(0)) {
                                     "toast" -> {
-                                        Toast.makeText(activity, argumentsArray.getOrNull(1) as? String ?: "", Toast.LENGTH_SHORT).show()
+                                        FlutterAddtoappBridgePlugin.showToast(activity, argumentsArray.getOrNull(1) as? String ?: "")
                                         result.success("0")
                                     }
                                     else -> {
                                         result.error("-2", "$url is not support", null)
                                     }
                                 }
-
                             }
                             else -> result.error("-1", "$functionName is not support", null)
                         }

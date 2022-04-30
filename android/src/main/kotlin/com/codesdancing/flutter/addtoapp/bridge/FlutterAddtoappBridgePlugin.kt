@@ -2,6 +2,7 @@ package com.codesdancing.flutter.addtoapp.bridge
 
 import android.app.Activity
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
 import io.flutter.embedding.engine.plugins.FlutterPlugin
@@ -63,6 +64,13 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         @JvmStatic
         fun setOnGlobalMethodCall(onGlobalMethodCall: OnGlobalMethodCall?) {
             this.onGlobalMethodCall = onGlobalMethodCall
+        }
+
+        @JvmStatic
+        fun showToast(activity: Activity?, message: String?) {
+            if (activity != null && !activity.isFinishing && message != null && message.isNotEmpty()) {
+                Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }
