@@ -3,24 +3,32 @@
 flutter addtoapp bridge for flutter call android/ios.
 
 ## Usage(flutter call android/ios)
+
 > flutter_addtoapp_bridge: ^0.0.1-dev.2
 
 - dart
 
-```
-try {
-  dynamic result = await _flutterAddtoappBridgePlugin.open("toast", "Hi, I am from flutter!");
-  if (kDebugMode) {
-    print("putPlatformValue result=$result");
+```dart
+class _MyAppState extends State<MyApp> {
+  final _flutterAddtoappBridgePlugin = FlutterAddtoappBridge();
+
+  Future<void> initPlatformState() async {
+    try {
+      dynamic result = await _flutterAddtoappBridgePlugin.open("toast", "Hi, I am from flutter!");
+      if (kDebugMode) {
+        print("putPlatformValue result=$result");
+      }
+    } on PlatformException {
+      platformVersion = 'Failed to get platform version.';
+    }
   }
-} on PlatformException {
-  platformVersion = 'Failed to get platform version.';
 }
 ```
 
 - ios(objectivec)
 
 ```objectivec
+// write code in application AppDelegate
 [FlutterAddtoappBridgePlugin setOnGlobalMethodCall:^(UIViewController *topmostViewController, FlutterMethodCall *call, FlutterResult result) {
   NSLog(@"onCall topViewController=%@, method=%@, arguments=%@", topmostViewController, call.method, call.arguments);
   
@@ -53,6 +61,7 @@ try {
 - android(kotlin)
 
 ```kotlin
+// write code in application
 FlutterAddtoappBridgePlugin.setOnGlobalMethodCall(object : FlutterAddtoappBridgePlugin.OnGlobalMethodCall {
     override fun onCall(activity: Activity?, call: MethodCall, result: MethodChannel.Result) {
         Log.d("onCall", "activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
