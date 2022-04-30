@@ -1,6 +1,6 @@
 name: flutter_addtoapp_bridge
 description: flutter addtoapp bridge for flutter call android/ios.
-version: 0.0.1-dev.2
+version: 0.0.1-dev.3
 homepage: https://github.com/krmao/flutter_addtoapp_bridge
 
 environment:
