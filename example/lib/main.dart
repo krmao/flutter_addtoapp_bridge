@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -22,7 +23,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    initPlatformState();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -31,8 +31,16 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await _flutterAddtoappBridgePlugin.getPlatformVersion() ?? 'Unknown platform version';
+      platformVersion = await _flutterAddtoappBridgePlugin.getPlatformVersion() ?? 'Unknown platform version';
+    } on PlatformException {
+      platformVersion = 'Failed to get platform version.';
+    }
+
+    try {
+      dynamic result = await _flutterAddtoappBridgePlugin.open("toast", "Hi, I am from flutter!");
+      if (kDebugMode) {
+        print("putPlatformValue result=$result");
+      }
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -52,10 +60,15 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('flutter addtoapp bridge example'),
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: GestureDetector(
+            onTap: () {
+              initPlatformState();
+            },
+            child: Text('Running on: $_platformVersion\n'),
+          ),
         ),
       ),
     );

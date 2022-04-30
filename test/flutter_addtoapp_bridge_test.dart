@@ -4,12 +4,9 @@ import 'package:flutter_addtoapp_bridge/flutter_addtoapp_bridge_platform_interfa
 import 'package:flutter_addtoapp_bridge/flutter_addtoapp_bridge_method_channel.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-class MockFlutterAddtoappBridgePlatform 
-    with MockPlatformInterfaceMixin
-    implements FlutterAddtoappBridgePlatform {
-
+class MockFlutterAddtoappBridgePlatform with MockPlatformInterfaceMixin implements FlutterAddtoappBridgePlatform {
   @override
-  Future<String?> getPlatformVersion() => Future.value('42');
+  Future callPlatform(String key, [arguments]) => Future.value('42');
 }
 
 void main() {
@@ -23,7 +20,7 @@ void main() {
     FlutterAddtoappBridge flutterAddtoappBridgePlugin = FlutterAddtoappBridge();
     MockFlutterAddtoappBridgePlatform fakePlatform = MockFlutterAddtoappBridgePlatform();
     FlutterAddtoappBridgePlatform.instance = fakePlatform;
-  
+
     expect(await flutterAddtoappBridgePlugin.getPlatformVersion(), '42');
   });
 }

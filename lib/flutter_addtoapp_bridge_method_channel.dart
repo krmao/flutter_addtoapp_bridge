@@ -9,9 +9,20 @@ class MethodChannelFlutterAddtoappBridge extends FlutterAddtoappBridgePlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('flutter_addtoapp_bridge');
 
+  Future<dynamic> getPlatformVersion() {
+    return callPlatform("getPlatformVersion");
+  }
+
+  Future<dynamic> putPlatformValue(String key, dynamic value) {
+    return callPlatform("putPlatformValue", [key, value]);
+  }
+
+  Future<dynamic> getPlatformValue(String key) {
+    return callPlatform("getPlatformValue", key);
+  }
+
   @override
-  Future<String?> getPlatformVersion() async {
-    final version = await methodChannel.invokeMethod<String>('getPlatformVersion');
-    return version;
+  Future<dynamic> callPlatform(String key, [dynamic arguments]) async {
+    return await methodChannel.invokeMethod<dynamic>("callPlatform", [key, arguments]);
   }
 }

@@ -14,7 +14,7 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
   ///
   /// Defaults to [MethodChannelFlutterAddtoappBridge].
   static FlutterAddtoappBridgePlatform get instance => _instance;
-  
+
   /// Platform-specific implementations should set this with their own
   /// platform-specific class that extends [FlutterAddtoappBridgePlatform] when
   /// they register themselves.
@@ -23,7 +23,7 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
     _instance = instance;
   }
 
-  Future<String?> getPlatformVersion() {
-    throw UnimplementedError('platformVersion() has not been implemented.');
+  Future<dynamic> callPlatform(String key, [dynamic arguments]) {
+    throw UnimplementedError('callPlatform() has not been implemented.');
   }
 }
