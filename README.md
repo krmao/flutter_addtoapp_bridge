@@ -64,6 +64,8 @@ class _MyAppState extends State<MyApp> {
 - android(kotlin)
 
 ```kotlin
+import com.codesdancing.flutter.addtoapp.bridge.FlutterAddtoappBridgePlugin;
+
 // write code in application
 FlutterAddtoappBridgePlugin.setOnGlobalMethodCall(object : FlutterAddtoappBridgePlugin.OnGlobalMethodCall {
     override fun onCall(activity: Activity?, call: MethodCall, result: MethodChannel.Result) {
