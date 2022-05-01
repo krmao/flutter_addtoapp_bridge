@@ -4,7 +4,7 @@ flutter addtoapp bridge for flutter call android/ios.
 
 ## Usage(flutter call android/ios)
 
-> flutter_addtoapp_bridge: ^0.0.1-dev.3
+> flutter_addtoapp_bridge: ^0.0.1-dev.4
 
 - dart
 
@@ -94,4 +94,80 @@ FlutterAddtoappBridgePlugin.setOnGlobalMethodCall(object : FlutterAddtoappBridge
         }
     }
 })
+```
+
+- Example About [Use FlutterFragment in Activity](https://flutter.cn/docs/development/add-to-app/android/add-flutter-fragment?tab=use-prewarmed-engine-java-tab#add-a-flutterfragment-to-an-activity-with-a-new-flutterengine)
+> shouldAttachEngineToActivity(true) // must be true, or flutter plugin activiy is null
+
+```java
+import io.flutter.embedding.android.FlutterFragment;
+
+public class XXActivity extends AppCompatActivity {
+    private FlutterFragment flutterFragment = null;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.xxx);
+       
+        flutterFragment = FlutterFragment.withCachedEngine("my_engine_id")
+                .shouldAttachEngineToActivity(true) // must be true, or flutter plugin activiy is null
+                .build();
+        FragmentPagerItemAdapter adapter = new FragmentPagerItemAdapter(
+                getSupportFragmentManager(), FragmentPagerItems.with(this)
+                .add(R.string.flutterHome, FlutterFragment.class)
+                .add(R.string.xxx, XXXOtherFragment.class)
+                .create()) {
+            @NonNull
+            @Override
+            public Fragment getItem(int position) {
+                if (position == 0) {
+                    return flutterFragment;
+                }
+                return super.getItem(position);
+            }
+        };
+    }
+
+    @Override
+    public void onPostResume() {
+        super.onPostResume();
+        if (flutterFragment != null) flutterFragment.onPostResume();
+    }
+
+    @Override
+    protected void onNewIntent(@NonNull Intent intent) {
+        if (flutterFragment != null) flutterFragment.onNewIntent(intent);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (flutterFragment != null) flutterFragment.onBackPressed();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            @NonNull String[] permissions,
+            @NonNull int[] grantResults
+    ) {
+        if (flutterFragment != null) flutterFragment.onRequestPermissionsResult(
+                requestCode,
+                permissions,
+                grantResults
+        );
+    }
+
+    @Override
+    public void onUserLeaveHint() {
+        if (flutterFragment != null) flutterFragment.onUserLeaveHint();
+    }
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        if (flutterFragment != null) flutterFragment.onTrimMemory(level);
+    }
+}
+
 ```

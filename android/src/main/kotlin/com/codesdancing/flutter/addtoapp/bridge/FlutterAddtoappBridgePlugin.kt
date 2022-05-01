@@ -23,32 +23,38 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     private var activity: Activity? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
+        Log.d("flutter_addtoapp_bridge","onAttachedToEngine")
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_addtoapp_bridge")
         channel.setMethodCallHandler(this)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        Log.d("onMethodCall", "activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
+        Log.d("flutter_addtoapp_bridge", "onMethodCall activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
         onGlobalMethodCall?.onCall(activity, call, result)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        Log.d("flutter_addtoapp_bridge","onAttachedToActivity ${binding.activity}")
         this.activity = binding.activity;
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
+        Log.d("flutter_addtoapp_bridge","onDetachedFromActivityForConfigChanges")
         this.activity = null;
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        Log.d("flutter_addtoapp_bridge","onReattachedToActivityForConfigChanges")
         this.activity = binding.activity;
     }
 
     override fun onDetachedFromActivity() {
+        Log.d("flutter_addtoapp_bridge","onDetachedFromActivity")
         this.activity = null;
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
+        Log.d("flutter_addtoapp_bridge","onDetachedFromEngine")
         channel.setMethodCallHandler(null)
     }
 
