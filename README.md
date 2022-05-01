@@ -26,8 +26,11 @@ class _MyAppState extends State<MyApp> {
 ```
 
 - ios(objectivec)
+> pod install
 
 ```objectivec
+#import <flutter_addtoapp_bridge/FlutterAddtoappBridgePlugin.h>
+
 // write code in application AppDelegate
 [FlutterAddtoappBridgePlugin setOnGlobalMethodCall:^(UIViewController *topmostViewController, FlutterMethodCall *call, FlutterResult result) {
   NSLog(@"onCall topViewController=%@, method=%@, arguments=%@", topmostViewController, call.method, call.arguments);
