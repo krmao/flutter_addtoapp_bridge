@@ -26,6 +26,7 @@ class _MyAppState extends State<MyApp> {
 ```
 
 - ios(objectivec)
+
 > pod install
 
 ```objectivec
@@ -97,36 +98,41 @@ FlutterAddtoappBridgePlugin.setOnGlobalMethodCall(object : FlutterAddtoappBridge
 ```
 
 - Example About [Use FlutterFragment in Activity](https://flutter.cn/docs/development/add-to-app/android/add-flutter-fragment?tab=use-prewarmed-engine-java-tab#add-a-flutterfragment-to-an-activity-with-a-new-flutterengine)
+
 > shouldAttachEngineToActivity(true) // must be true, or flutter plugin activiy is null
+>
+> the activity contains flutter fragment must special android:theme="@style/AppTheme", or render not completely
+>
+> flutter fragment shouldn't in viewpager, render not completely, or maybe the problem is not special android:theme in activity
 
 ```java
 import io.flutter.embedding.android.FlutterFragment;
 
-public class XXActivity extends AppCompatActivity {
+public class FlutterFragmentExampleActivity extends AppCompatActivity {
+    @Nullable
     private FlutterFragment flutterFragment = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.xxx);
-       
+        setContentView(R.layout.flutter_fragment_example_activity);
         flutterFragment = FlutterFragment.withCachedEngine("my_engine_id")
-                .shouldAttachEngineToActivity(true) // must be true, or flutter plugin activiy is null
+                .shouldAttachEngineToActivity(true)
                 .build();
-        FragmentPagerItemAdapter adapter = new FragmentPagerItemAdapter(
-                getSupportFragmentManager(), FragmentPagerItems.with(this)
-                .add(R.string.flutterHome, FlutterFragment.class)
-                .add(R.string.xxx, XXXOtherFragment.class)
-                .create()) {
-            @NonNull
-            @Override
-            public Fragment getItem(int position) {
-                if (position == 0) {
-                    return flutterFragment;
-                }
-                return super.getItem(position);
-            }
-        };
+        this.getSupportFragmentManager().beginTransaction()
+                .add(R.id.flutterContainer, flutterFragment, "flutterFragment")
+                .commitAllowingStateLoss();
+
+//        new Handler().postDelayed(() -> {
+//            this.getSupportFragmentManager().beginTransaction()
+//                    .replace(android.R.id.content, new MineFragment(), "MineFragment")
+//                    .commitAllowingStateLoss();
+//            new Handler().postDelayed(() -> {
+//                this.getSupportFragmentManager().beginTransaction()
+//                        .add(android.R.id.content, flutterFragment, "flutterFragment")
+//                        .commitAllowingStateLoss();
+//            }, 3000);
+//        }, 3000);
     }
 
     @Override
@@ -146,16 +152,8 @@ public class XXActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(
-            int requestCode,
-            @NonNull String[] permissions,
-            @NonNull int[] grantResults
-    ) {
-        if (flutterFragment != null) flutterFragment.onRequestPermissionsResult(
-                requestCode,
-                permissions,
-                grantResults
-        );
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (flutterFragment != null) flutterFragment.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     @Override
@@ -170,4 +168,51 @@ public class XXActivity extends AppCompatActivity {
     }
 }
 
+```
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/flutterContainer"
+        android:background="@color/yellow"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:background="@color/orange"
+        android:textSize="30sp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:text="bottom bar" />
+</LinearLayout>
+```
+
+```xml
+<activity
+    android:name="xx.FlutterFragmentExampleActivity"
+    android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+    android:exported="true"
+    android:hardwareAccelerated="true"
+    android:launchMode="singleTop"
+    android:theme="@style/AppTheme"
+    android:windowSoftInputMode="adjustResize">
+    <!-- This keeps the window background of the activity showing
+         until Flutter renders its first frame. It can be removed if
+         there is no splash screen (such as the default splash screen
+         defined in @style/LaunchTheme). -->
+    <meta-data
+        android:name="io.flutter.app.android.SplashScreenUntilFirstFrame"
+        android:value="true" />
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+</activity>
 ```
