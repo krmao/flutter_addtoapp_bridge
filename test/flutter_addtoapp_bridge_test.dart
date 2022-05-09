@@ -1,12 +1,16 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/src/services/message_codec.dart';
 import 'package:flutter_addtoapp_bridge/flutter_addtoapp_bridge.dart';
-import 'package:flutter_addtoapp_bridge/flutter_addtoapp_bridge_platform_interface.dart';
 import 'package:flutter_addtoapp_bridge/flutter_addtoapp_bridge_method_channel.dart';
+import 'package:flutter_addtoapp_bridge/flutter_addtoapp_bridge_platform_interface.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 class MockFlutterAddtoappBridgePlatform with MockPlatformInterfaceMixin implements FlutterAddtoappBridgePlatform {
   @override
   Future callPlatform(String key, [arguments]) => Future.value('42');
+
+  @override
+  void setMethodCallHandler(Future Function(MethodCall call)? handler) {}
 }
 
 void main() {

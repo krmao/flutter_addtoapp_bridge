@@ -4,10 +4,10 @@
 #pragma ide diagnostic ignored "OCUnusedMethodInspection"
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 static OnGlobalMethodCall onGlobalMethodCall = nil;
-
+static FlutterMethodChannel *channel = nil;
 @implementation FlutterAddtoappBridgePlugin
 + (void)registerWithRegistrar:(NSObject <FlutterPluginRegistrar> *)registrar {
-    FlutterMethodChannel *channel = [FlutterMethodChannel
+     channel = [FlutterMethodChannel
             methodChannelWithName:@"flutter_addtoapp_bridge"
                   binaryMessenger:[registrar messenger]];
     FlutterAddtoappBridgePlugin *instance = [[FlutterAddtoappBridgePlugin alloc] init];
@@ -18,10 +18,10 @@ static OnGlobalMethodCall onGlobalMethodCall = nil;
     onGlobalMethodCall = onCall;
 }
 
-+ (UIViewController *)topmostViewController {
++ (UIViewController * _Nullable)topmostViewController {
     // NOTE: Adapted from various stray answers here:
     // https://stackoverflow.com/questions/6131205/iphone-how-to-find-topmost-view-controller/20515681
-    UIViewController *viewController;
+    UIViewController *viewController = nil;
     for (UIWindow *window in UIApplication.sharedApplication.windows.reverseObjectEnumerator.allObjects) {
         if (window.windowLevel == UIWindowLevelNormal) {
             viewController = window.rootViewController;
@@ -54,7 +54,16 @@ static OnGlobalMethodCall onGlobalMethodCall = nil;
     return viewController;
 }
 
-+ (void)showToast:(UIViewController *)viewController message:(NSString *)message {
++ (Boolean)callFlutter:(NSString * _Nonnull)method arguments:(id _Nullable)arguments callback:(FlutterResult _Nullable)callback{
+    if(channel != nil){
+    [channel invokeMethod:method arguments:arguments result:callback];
+        return true;
+    }else{
+        return false;
+    }
+}
+
++ (void)showToast:(UIViewController * _Nullable)viewController message:(NSString * _Nonnull)message {
     UIAlertController *alert=[UIAlertController alertControllerWithTitle:nil
                                                                   message:@""
                                                            preferredStyle:UIAlertControllerStyleAlert];

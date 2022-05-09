@@ -5,6 +5,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.NonNull
 import androidx.annotation.Nullable
+import androidx.annotation.UiThread
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -19,13 +20,12 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
-    private lateinit var channel: MethodChannel
     private var activity: Activity? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        Log.d("flutter_addtoapp_bridge","onAttachedToEngine")
+        Log.d("flutter_addtoapp_bridge", "onAttachedToEngine")
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_addtoapp_bridge")
-        channel.setMethodCallHandler(this)
+        channel?.setMethodCallHandler(this)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
@@ -34,28 +34,28 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        Log.d("flutter_addtoapp_bridge","onAttachedToActivity ${binding.activity}")
-        this.activity = binding.activity;
+        Log.d("flutter_addtoapp_bridge", "onAttachedToActivity ${binding.activity}")
+        this.activity = binding.activity
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        Log.d("flutter_addtoapp_bridge","onDetachedFromActivityForConfigChanges")
-        this.activity = null;
+        Log.d("flutter_addtoapp_bridge", "onDetachedFromActivityForConfigChanges")
+        this.activity = null
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        Log.d("flutter_addtoapp_bridge","onReattachedToActivityForConfigChanges")
-        this.activity = binding.activity;
+        Log.d("flutter_addtoapp_bridge", "onReattachedToActivityForConfigChanges")
+        this.activity = binding.activity
     }
 
     override fun onDetachedFromActivity() {
-        Log.d("flutter_addtoapp_bridge","onDetachedFromActivity")
-        this.activity = null;
+        Log.d("flutter_addtoapp_bridge", "onDetachedFromActivity")
+        this.activity = null
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        Log.d("flutter_addtoapp_bridge","onDetachedFromEngine")
-        channel.setMethodCallHandler(null)
+        Log.d("flutter_addtoapp_bridge", "onDetachedFromEngine")
+        channel?.setMethodCallHandler(null)
     }
 
     interface OnGlobalMethodCall {
@@ -70,6 +70,26 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         @JvmStatic
         fun setOnGlobalMethodCall(onGlobalMethodCall: OnGlobalMethodCall?) {
             this.onGlobalMethodCall = onGlobalMethodCall
+        }
+
+        private var channel: MethodChannel? = null
+
+        /**
+         * @return false if innerMethodChannel is null
+         */
+        @UiThread
+        @JvmStatic
+        @JvmOverloads
+        fun callFlutter(method: String, @Nullable arguments: Any? = null, @Nullable callback: Result? = null): Boolean {
+            val innerMethodChannel = channel
+
+            return if (innerMethodChannel != null) {
+                innerMethodChannel.invokeMethod(method, arguments, callback)
+                true
+            } else {
+                Log.e("BridgePlugin", "methodChannel is null")
+                false
+            }
         }
 
         @JvmStatic

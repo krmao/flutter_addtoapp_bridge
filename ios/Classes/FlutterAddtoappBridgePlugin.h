@@ -8,9 +8,11 @@ typedef void (^OnGlobalMethodCall)(UIViewController *topViewController, FlutterM
 @interface FlutterAddtoappBridgePlugin : NSObject <FlutterPlugin>
 + (void)setOnGlobalMethodCall:(OnGlobalMethodCall)onGlobalMethodCall;
 
-+ (UIViewController *)topmostViewController;
++ (UIViewController * _Nullable)topmostViewController;
 
-+ (void)showToast:(UIViewController *)viewController message:(NSString *)message;
++ (void)showToast:(UIViewController * _Nullable)viewController message:(NSString *_Nonnull)message;
+
++ (Boolean)callFlutter:(NSString * _Nonnull)method arguments:(id _Nullable)arguments callback:(FlutterResult _Nullable)callback;
 @end
 
 #pragma clang diagnostic pop

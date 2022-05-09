@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'flutter_addtoapp_bridge_method_channel.dart';
@@ -25,5 +26,9 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
 
   Future<dynamic> callPlatform(String key, [dynamic arguments]) {
     throw UnimplementedError('callPlatform() has not been implemented.');
+  }
+
+  void setMethodCallHandler(Future<dynamic> Function(MethodCall call)? handler) {
+    throw UnimplementedError('setMethodCallHandler() has not been implemented.');
   }
 }

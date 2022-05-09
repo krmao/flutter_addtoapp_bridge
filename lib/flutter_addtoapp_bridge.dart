@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 import 'flutter_addtoapp_bridge_platform_interface.dart';
 
 class FlutterAddtoappBridge {
@@ -11,5 +13,9 @@ class FlutterAddtoappBridge {
 
   Future<dynamic> callPlatform(String key, [dynamic arguments]) {
     return FlutterAddtoappBridgePlatform.instance.callPlatform(key, arguments);
+  }
+
+  void setMethodCallHandler(Future<dynamic> Function(MethodCall call)? handler) {
+    return FlutterAddtoappBridgePlatform.instance.setMethodCallHandler(handler);
   }
 }
