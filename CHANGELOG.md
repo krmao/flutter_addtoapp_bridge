@@ -17,3 +17,7 @@
 ## 0.0.1-dev.5
 
 * support dart 2.16.2
+
+## 0.0.2
+
+* support call flutter
