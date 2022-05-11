@@ -45,3 +45,10 @@ flutter format .
 flutter pub publish --dry-run
 flutter pub publish
 ```
+
+## Tag
+
+```shell
+git tag -a $version -m "$message"
+git push origin --tags
+```
