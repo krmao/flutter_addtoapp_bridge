@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_addtoapp_bridge/flutter_addtoapp_bridge_method_channel.dart';
 
 void main() {
-  MethodChannelFlutterAddtoappBridge platform = MethodChannelFlutterAddtoappBridge();
+  MethodChannelFlutterAddtoappBridge platform =
+      MethodChannelFlutterAddtoappBridge();
   const MethodChannel channel = MethodChannel('flutter_addtoapp_bridge');
 
   TestWidgetsFlutterBinding.ensureInitialized();

@@ -27,6 +27,12 @@ flutter build ios --no-codesign -v
 killall -9 dart
 ```
 
+## Format dart code
+
+```shell
+flutter format .
+```
+
 ## Flutter doc
 
 ```shell

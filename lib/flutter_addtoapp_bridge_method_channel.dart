@@ -23,11 +23,13 @@ class MethodChannelFlutterAddtoappBridge extends FlutterAddtoappBridgePlatform {
 
   @override
   Future<dynamic> callPlatform(String key, [dynamic arguments]) async {
-    return await methodChannel.invokeMethod<dynamic>("callPlatform", [key, arguments]);
+    return await methodChannel
+        .invokeMethod<dynamic>("callPlatform", [key, arguments]);
   }
 
   @override
-  void setMethodCallHandler(Future<dynamic> Function(MethodCall call)? handler) {
+  void setMethodCallHandler(
+      Future<dynamic> Function(MethodCall call)? handler) {
     return methodChannel.setMethodCallHandler(handler);
   }
 }

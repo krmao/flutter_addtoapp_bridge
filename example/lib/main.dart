@@ -31,13 +31,16 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion = await _flutterAddtoappBridgePlugin.getPlatformVersion() ?? 'Unknown platform version';
+      platformVersion =
+          await _flutterAddtoappBridgePlugin.getPlatformVersion() ??
+              'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
 
     try {
-      dynamic result = await _flutterAddtoappBridgePlugin.open("toast", "Hi, I am from flutter!");
+      dynamic result = await _flutterAddtoappBridgePlugin.open(
+          "toast", "Hi, I am from flutter!");
       if (kDebugMode) {
         print("putPlatformValue result=$result");
       }

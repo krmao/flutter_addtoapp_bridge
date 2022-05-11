@@ -21,3 +21,7 @@
 ## 0.0.2
 
 * support call flutter
+
+## 0.0.3
+
+* format dart code

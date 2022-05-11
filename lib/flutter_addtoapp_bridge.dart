@@ -15,7 +15,8 @@ class FlutterAddtoappBridge {
     return FlutterAddtoappBridgePlatform.instance.callPlatform(key, arguments);
   }
 
-  void setMethodCallHandler(Future<dynamic> Function(MethodCall call)? handler) {
+  void setMethodCallHandler(
+      Future<dynamic> Function(MethodCall call)? handler) {
     return FlutterAddtoappBridgePlatform.instance.setMethodCallHandler(handler);
   }
 }

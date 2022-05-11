@@ -4,7 +4,7 @@ flutter addtoapp bridge for flutter call android/ios.
 
 ## Usage(flutter call android/ios)
 
-> flutter_addtoapp_bridge: ^0.0.2
+> flutter_addtoapp_bridge: ^0.0.3
 
 - dart
 
