@@ -4,7 +4,11 @@ flutter addtoapp bridge for flutter call android/ios.
 
 ## Usage(flutter call android/ios)
 
-> flutter_addtoapp_bridge: ^0.0.3
+> [flutter_addtoapp_bridge/versions](https://pub.flutter-io.cn/packages/flutter_addtoapp_bridge/versions)
+
+```yaml
+flutter_addtoapp_bridge: ^x.x.x
+```
 
 - dart
 
@@ -172,44 +176,22 @@ public class FlutterFragmentExampleActivity extends AppCompatActivity {
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
 
-    <FrameLayout
-        android:id="@+id/flutterContainer"
-        android:background="@color/yellow"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1" />
+    <FrameLayout android:id="@+id/flutterContainer" android:background="@color/yellow" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
 
-    <TextView
-        android:background="@color/orange"
-        android:textSize="30sp"
-        android:gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:text="bottom bar" />
+    <TextView android:background="@color/orange" android:textSize="30sp" android:gravity="center" android:layout_width="match_parent" android:layout_height="100dp" android:text="bottom bar" />
 </LinearLayout>
 ```
 
 ```xml
-<activity
-    android:name="xx.FlutterFragmentExampleActivity"
-    android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-    android:exported="true"
-    android:hardwareAccelerated="true"
-    android:launchMode="singleTop"
-    android:theme="@style/AppTheme"
-    android:windowSoftInputMode="adjustResize">
+
+<activity android:name="xx.FlutterFragmentExampleActivity" android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode" android:exported="true" android:hardwareAccelerated="true" android:launchMode="singleTop" android:theme="@style/AppTheme" android:windowSoftInputMode="adjustResize">
     <!-- This keeps the window background of the activity showing
          until Flutter renders its first frame. It can be removed if
          there is no splash screen (such as the default splash screen
          defined in @style/LaunchTheme). -->
-    <meta-data
-        android:name="io.flutter.app.android.SplashScreenUntilFirstFrame"
-        android:value="true" />
+    <meta-data android:name="io.flutter.app.android.SplashScreenUntilFirstFrame" android:value="true" />
     <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
