@@ -5,19 +5,56 @@ import 'package:flutter_addtoapp_bridge/flutter_addtoapp_bridge_platform_interfa
 import 'package:flutter_test/flutter_test.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
-class MockFlutterAddtoappBridgePlatform
-    with MockPlatformInterfaceMixin
-    implements FlutterAddtoappBridgePlatform {
+class MockFlutterAddtoappBridgePlatform with MockPlatformInterfaceMixin implements FlutterAddtoappBridgePlatform {
   @override
   Future callPlatform(String key, [arguments]) => Future.value('42');
 
   @override
   void setMethodCallHandler(Future Function(MethodCall call)? handler) {}
+
+  @override
+  Future<double> getFloat(String key, [defaultValue = 0.0]) {
+    return Future.value(0.0);
+  }
+
+  @override
+  Future<int> getLong(String key, [defaultValue = 0]) {
+    return Future.value(0);
+  }
+
+  @override
+  Future<String> getPlatformVersion() {
+    return Future.value('0');
+  }
+
+  @override
+  Future<String> getString(String key, [defaultValue = ""]) {
+    return Future.value('0');
+  }
+
+  @override
+  Future<bool> isAddToApp() {
+    return Future.value(false);
+  }
+
+  @override
+  Future<String> putFloat(String key, String value) {
+    return Future.value('0');
+  }
+
+  @override
+  Future<String> putLong(String key, String value) {
+    return Future.value('0');
+  }
+
+  @override
+  Future<String> putString(String key, String value) {
+    return Future.value('0');
+  }
 }
 
 void main() {
-  final FlutterAddtoappBridgePlatform initialPlatform =
-      FlutterAddtoappBridgePlatform.instance;
+  final FlutterAddtoappBridgePlatform initialPlatform = FlutterAddtoappBridgePlatform.instance;
 
   test('$MethodChannelFlutterAddtoappBridge is the default instance', () {
     expect(initialPlatform, isInstanceOf<MethodChannelFlutterAddtoappBridge>());
@@ -25,8 +62,7 @@ void main() {
 
   test('getPlatformVersion', () async {
     FlutterAddtoappBridge flutterAddtoappBridgePlugin = FlutterAddtoappBridge();
-    MockFlutterAddtoappBridgePlatform fakePlatform =
-        MockFlutterAddtoappBridgePlatform();
+    MockFlutterAddtoappBridgePlatform fakePlatform = MockFlutterAddtoappBridgePlatform();
     FlutterAddtoappBridgePlatform.instance = fakePlatform;
 
     expect(await flutterAddtoappBridgePlugin.getPlatformVersion(), '42');

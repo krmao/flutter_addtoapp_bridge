@@ -30,3 +30,7 @@
 
 * support set/get value
 * support check isaddtoapp
+
+## 0.0.5
+
+* export functions
