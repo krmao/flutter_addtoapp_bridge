@@ -9,27 +9,45 @@ class MethodChannelFlutterAddtoappBridge extends FlutterAddtoappBridgePlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('flutter_addtoapp_bridge');
 
-  Future<dynamic> getPlatformVersion() {
-    return callPlatform("getPlatformVersion");
+  Future<String> getPlatformVersion() {
+    return callPlatform("getPlatformVersion") as Future<String>;
   }
 
-  Future<dynamic> putPlatformValue(String key, dynamic value) {
-    return callPlatform("putPlatformValue", [key, value]);
+  Future<bool> isAddToApp() {
+    return callPlatform("isAddToApp") as Future<bool>;
   }
 
-  Future<dynamic> getPlatformValue(String key) {
-    return callPlatform("getPlatformValue", key);
+  Future<String> putString(String key, String value) {
+    return callPlatform("putString", [key, value]) as Future<String>;
+  }
+
+  Future<String> getString(String key, {defaultValue = ""}) {
+    return callPlatform("getString", [key, defaultValue]) as Future<String>;
+  }
+
+  Future<String> putLong(String key, String value) {
+    return callPlatform("putLong", [key, value]) as Future<String>;
+  }
+
+  Future<int> getLong(String key, {defaultValue = 0}) {
+    return callPlatform("getLong", [key, defaultValue]) as Future<int>;
+  }
+
+  Future<String> putFloat(String key, String value) {
+    return callPlatform("putFloat", [key, value]) as Future<String>;
+  }
+
+  Future<double> getFloat(String key, {defaultValue = 0.0}) {
+    return callPlatform("getFloat", [key, defaultValue]) as Future<double>;
   }
 
   @override
   Future<dynamic> callPlatform(String key, [dynamic arguments]) async {
-    return await methodChannel
-        .invokeMethod<dynamic>("callPlatform", [key, arguments]);
+    return await methodChannel.invokeMethod<dynamic>("callPlatform", [key, arguments]);
   }
 
   @override
-  void setMethodCallHandler(
-      Future<dynamic> Function(MethodCall call)? handler) {
+  void setMethodCallHandler(Future<dynamic> Function(MethodCall call)? handler) {
     return methodChannel.setMethodCallHandler(handler);
   }
 }

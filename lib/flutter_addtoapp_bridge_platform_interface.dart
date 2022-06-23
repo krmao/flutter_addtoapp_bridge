@@ -9,8 +9,7 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
 
   static final Object _token = Object();
 
-  static FlutterAddtoappBridgePlatform _instance =
-      MethodChannelFlutterAddtoappBridge();
+  static FlutterAddtoappBridgePlatform _instance = MethodChannelFlutterAddtoappBridge();
 
   /// The default instance of [FlutterAddtoappBridgePlatform] to use.
   ///
@@ -29,9 +28,7 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
     throw UnimplementedError('callPlatform() has not been implemented.');
   }
 
-  void setMethodCallHandler(
-      Future<dynamic> Function(MethodCall call)? handler) {
-    throw UnimplementedError(
-        'setMethodCallHandler() has not been implemented.');
+  void setMethodCallHandler(Future<dynamic> Function(MethodCall call)? handler) {
+    throw UnimplementedError('setMethodCallHandler() has not been implemented.');
   }
 }

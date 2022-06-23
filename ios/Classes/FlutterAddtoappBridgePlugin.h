@@ -3,10 +3,10 @@
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedMethodInspection"
 
-typedef void (^OnGlobalMethodCall)(UIViewController *topViewController, FlutterMethodCall *call, FlutterResult result);
+typedef Boolean (^OnGlobalMethodCall)(UIViewController *_Nullable topViewController, FlutterMethodCall * _Nonnull call, FlutterResult _Nonnull result);
 
 @interface FlutterAddtoappBridgePlugin : NSObject <FlutterPlugin>
-+ (void)setOnGlobalMethodCall:(OnGlobalMethodCall)onGlobalMethodCall;
++ (void)setOnGlobalMethodCall:(OnGlobalMethodCall _Nullable)onGlobalMethodCall;
 
 + (UIViewController * _Nullable)topmostViewController;
 

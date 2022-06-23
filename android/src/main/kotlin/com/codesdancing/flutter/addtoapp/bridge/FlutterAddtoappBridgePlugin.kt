@@ -1,6 +1,10 @@
 package com.codesdancing.flutter.addtoapp.bridge
 
 import android.app.Activity
+import android.content.Context
+import android.content.SharedPreferences
+import android.os.Build
+import android.text.TextUtils
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.NonNull
@@ -30,7 +34,12 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         Log.d("flutter_addtoapp_bridge", "onMethodCall activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
-        onGlobalMethodCall?.onCall(activity, call, result)
+        // 优先自定义
+        val isHandled: Boolean = onGlobalMethodCall?.onCall(activity, call, result) ?: false
+        // 其次保底
+        if (!isHandled) {
+            onDefaultGlobalMethodCall.onCall(activity, call, result)
+        }
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -59,13 +68,121 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     }
 
     interface OnGlobalMethodCall {
-        fun onCall(@Nullable activity: Activity?, @NonNull call: MethodCall, @NonNull result: Result)
+        fun onCall(@Nullable activity: Activity?, @NonNull call: MethodCall, @NonNull result: Result): Boolean
     }
 
     @Suppress("unused")
     companion object {
         @JvmStatic
         private var onGlobalMethodCall: OnGlobalMethodCall? = null
+
+        @JvmStatic
+        private var onDefaultGlobalMethodCall: OnGlobalMethodCall = object : OnGlobalMethodCall {
+            override fun onCall(activity: Activity?, call: MethodCall, result: Result): Boolean {
+                Log.d("onCall", "activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
+                if (call.method == "callPlatform") {
+                    val argumentsWithFunctionNameArray = call.arguments as? ArrayList<*>
+                    return when (val functionName = argumentsWithFunctionNameArray?.first()) {
+                        "getPlatformVersion" -> {
+                            result.success(Build.VERSION.RELEASE)
+                            true
+                        }
+                        "isAddToApp" -> {
+                            result.success(onGlobalMethodCall != null)
+                            true
+                        }
+                        "putString" -> {
+                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
+                            val key = argumentsArray?.getOrNull(0) as? String
+                            if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
+                                val value = argumentsArray?.getOrNull(1) as? String
+                                val editor: SharedPreferences.Editor = sharedPreferences.edit()
+                                editor.putString(key, value)
+                                editor.apply()
+                                result.success("0")
+                            } else {
+                                result.error("-1", "key=$key is empty", null)
+                            }
+                            true
+                        }
+                        "getString" -> {
+                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
+                            val key = argumentsArray?.getOrNull(0) as? String
+                            if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
+                                val defaultValue = argumentsArray?.getOrNull(1) as? String
+                                result.success(sharedPreferences.getString(key, defaultValue))
+                            } else {
+                                result.error("-1", "key=$key is empty", null)
+                            }
+                            true
+                        }
+                        "putLong" -> {
+                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
+                            val key = argumentsArray?.getOrNull(0) as? String
+                            if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
+                                val value = argumentsArray?.getOrNull(1) as? Long ?: 0
+                                val editor: SharedPreferences.Editor = sharedPreferences.edit()
+                                editor.putLong(key, value)
+                                editor.apply()
+                                result.success("0")
+                            } else {
+                                result.error("-1", "key=$key is empty", null)
+                            }
+                            true
+                        }
+                        "getLong" -> {
+                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
+                            val key = argumentsArray?.getOrNull(0) as? String
+                            if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
+                                val defaultValue = argumentsArray?.getOrNull(1) as? Long ?: 0
+                                result.success(sharedPreferences.getLong(key, defaultValue))
+                            } else {
+                                result.error("-1", "key=$key is empty", null)
+                            }
+                            true
+                        }
+                        "putFloat" -> {
+                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
+                            val key = argumentsArray?.getOrNull(0) as? String
+                            if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
+                                val value = argumentsArray?.getOrNull(1) as? Float ?: 0f
+                                val editor: SharedPreferences.Editor = sharedPreferences.edit()
+                                editor.putFloat(key, value)
+                                editor.apply()
+                                result.success("0")
+                            } else {
+                                result.error("-1", "key=$key is empty", null)
+                            }
+                            true
+                        }
+                        "getFloat" -> {
+                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
+                            val key = argumentsArray?.getOrNull(0) as? String
+                            if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
+                                val defaultValue = argumentsArray?.getOrNull(1) as? Float ?: 0f
+                                result.success(sharedPreferences.getFloat(key, defaultValue))
+                            } else {
+                                result.error("-1", "key=$key is empty", null)
+                            }
+                            true
+                        }
+                        else -> {
+                            result.error("-1", "$functionName is not support", null)
+                            false
+                        }
+                    }
+                } else {
+                    result.notImplemented()
+                    return false;
+                }
+            }
+        }
 
         @JvmStatic
         fun setOnGlobalMethodCall(onGlobalMethodCall: OnGlobalMethodCall?) {
