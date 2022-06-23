@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
 #import <flutter_addtoapp_bridge/FlutterAddtoappBridgePlugin.h>
 
 // write code in application AppDelegate
-[FlutterAddtoappBridgePlugin setOnGlobalMethodCall:^Boolean(UIViewController *topmostViewController, FlutterMethodCall *call, FlutterResult result) {
+[FlutterAddtoappBridgePlugin setOnGlobalMethodCall:^(UIViewController *topmostViewController, FlutterMethodCall *call, FlutterResult result) {
   NSLog(@"onCall topViewController=%@, method=%@, arguments=%@", topmostViewController, call.method, call.arguments);
   
   if([@"callPlatform" isEqualToString:call.method]){
@@ -60,7 +60,6 @@ class _MyAppState extends State<MyApp> {
       NSString *functionName = [argumentsWithFunctionNameArray firstObject];
       if([@"getPlatformVersion" isEqualToString:functionName]){
           result([[UIDevice currentDevice] systemVersion]);
-          return true;
       }else if([@"open" isEqualToString:functionName]){
           NSArray *argumentsArray = (NSArray *)[argumentsWithFunctionNameArray objectAtIndex:1];
           NSString *url = [argumentsArray firstObject];
@@ -68,18 +67,14 @@ class _MyAppState extends State<MyApp> {
           if([@"toast" isEqualToString:url]){
               [FlutterAddtoappBridgePlugin showToast:topmostViewController message:(NSString *)[argumentsArray objectAtIndex:1]];
               result(@"0");
-              return true;
           }else{
-              result([NSString stringWithFormat:@"-2 %@ is not support", url]);
-              return false;
+               result(FlutterMethodNotImplemented);
           }
       }else{
-          result([NSString stringWithFormat:@"-1 %@ is not support", functionName]);
-          return false;
+          result(FlutterMethodNotImplemented);
       }
   }else{
       result(FlutterMethodNotImplemented);
-      return false;
   }
 }];
 ```
@@ -98,7 +93,6 @@ FlutterAddtoappBridgePlugin.setOnGlobalMethodCall(object : FlutterAddtoappBridge
             when (val functionName = argumentsWithFunctionNameArray?.first()) {
                 "getPlatformVersion" ->{
                     result.success(android.os.Build.VERSION.RELEASE)
-                    return true
                 }
                 "open" -> {
                     val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
@@ -107,22 +101,18 @@ FlutterAddtoappBridgePlugin.setOnGlobalMethodCall(object : FlutterAddtoappBridge
                         "toast" -> {
                             FlutterAddtoappBridgePlugin.showToast(activity, argumentsArray.getOrNull(1) as? String ?: "")
                             result.success("0")
-                            return true
                         }
                         else -> {
-                            result.error("-2", "$url is not support", null)
-                            return false
+                            result.notImplemented()
                         }
                     }
                 }
                 else ->{
-                    result.error("-1", "$functionName is not support", null)
-                    return false
+                    result.notImplemented()
                 }
             }
         } else {
             result.notImplemented()
-            return false
         }
     }
 })
