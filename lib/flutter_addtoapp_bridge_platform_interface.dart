@@ -32,35 +32,35 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
     throw UnimplementedError('setMethodCallHandler() has not been implemented.');
   }
 
-  Future<String> getPlatformVersion() {
+  Future<String?> getPlatformVersion() {
     throw UnimplementedError('callPlatform() has not been implemented.');
   }
 
-  Future<bool> isAddToApp() {
+  Future<bool?> isAddToApp() {
     throw UnimplementedError('callPlatform() has not been implemented.');
   }
 
-  Future<String> putString(String key, String value) {
+  Future<String?> putString(String key, String value) {
     throw UnimplementedError('callPlatform() has not been implemented.');
   }
 
-  Future<String> getString(String key, [defaultValue = ""]) {
+  Future<String?> getString(String key, [defaultValue = ""]) {
     throw UnimplementedError('callPlatform() has not been implemented.');
   }
 
-  Future<String> putLong(String key, String value) {
+  Future<String?> putLong(String key, String value) {
     throw UnimplementedError('callPlatform() has not been implemented.');
   }
 
-  Future<int> getLong(String key, [defaultValue = 0]) {
+  Future<int?> getLong(String key, [defaultValue = 0]) {
     throw UnimplementedError('callPlatform() has not been implemented.');
   }
 
-  Future<String> putFloat(String key, String value) {
+  Future<String?> putFloat(String key, String value) {
     throw UnimplementedError('callPlatform() has not been implemented.');
   }
 
-  Future<double> getFloat(String key, [defaultValue = 0.0]) {
+  Future<double?> getFloat(String key, [defaultValue = 0.0]) {
     throw UnimplementedError('callPlatform() has not been implemented.');
   }
 }

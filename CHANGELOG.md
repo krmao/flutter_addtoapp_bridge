@@ -42,4 +42,8 @@
 * 
 ## 0.0.7
 
-* fix bug 
+* fix bug
+
+## 0.0.8
+
+* miss plugin exception return null
