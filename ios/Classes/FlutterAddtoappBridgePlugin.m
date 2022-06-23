@@ -6,7 +6,7 @@
 
 static FlutterMethodChannel *channel = nil;
 static OnGlobalMethodCall onGlobalMethodCall = nil;
-static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController *_Nullable topViewController, FlutterMethodCall *_Nonnull call, FlutterResult _Nonnull result) {
+static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nullable topViewController, FlutterMethodCall *_Nonnull call, FlutterResult _Nonnull result) {
     NSLog(@"--> onDefaultGlobalMethodCall (oc) topViewController=%@, method=%@, arguments=%@", topViewController, call.method, call.arguments);
     if ([@"callPlatform" isEqualToString:call.method]) {
         NSLog(@"onCall %@", [call.arguments class]);
@@ -14,10 +14,8 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
         NSString *functionName = [argumentsWithFunctionNameArray firstObject];
         if ([@"getPlatformVersion" isEqualToString:functionName]) {
             result([[UIDevice currentDevice] systemVersion]);
-            return true;
         } else if ([@"isAddToApp" isEqualToString:functionName]) {
-            result(onGlobalMethodCall ? @(true) : @(false));
-            return true;
+            result(onGlobalMethodCall ? @(YES) : @(NO));
         } else if ([@"putString" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             NSString *key = [argumentsArray[0] stringValue];
@@ -26,7 +24,6 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
             [defaults setObject:value forKey:key];
             [defaults synchronize];
             result(@"0");
-            return true;
         } else if ([@"getString" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             NSString *key = [argumentsArray[0] stringValue];
@@ -37,7 +34,6 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
                 returnValue = defaultValue;
             }
             result(returnValue);
-            return true;
         } else if ([@"putLong" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             NSString *key = [argumentsArray[0] stringValue];
@@ -46,7 +42,6 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
             [defaults setObject:@(value) forKey:key]; // object can check if contains
             [defaults synchronize];
             result(@"0");
-            return true;
         } else if ([@"getLong" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             NSString *key = [argumentsArray[0] stringValue];
@@ -57,7 +52,6 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
             } else {
                 result(@([defaults integerForKey:key]));
             }
-            return true;
         } else if ([@"putFloat" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             NSString *key = [argumentsArray[0] stringValue];
@@ -66,7 +60,6 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
             [defaults setObject:@(value) forKey:key]; // object can check if contains
             [defaults synchronize];
             result(@"0");
-            return true;
         } else if ([@"getFloat" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             NSString *key = [argumentsArray[0] stringValue];
@@ -77,14 +70,11 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
             } else {
                 result(@([defaults integerForKey:key]));
             }
-            return true;
         } else {
-            result([NSString stringWithFormat:@"-1 %@ is not support", functionName]);
-            return false;
+            result(FlutterMethodNotImplemented);
         }
     } else {
         result(FlutterMethodNotImplemented);
-        return false;
     }
 };
 
@@ -147,9 +137,12 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
 }
 
 + (void)showToast:(UIViewController *_Nullable)viewController message:(NSString *_Nonnull)message {
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "IncompatibleTypes"
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil
                                                                    message:@""
                                                             preferredStyle:UIAlertControllerStyleAlert];
+#pragma clang diagnostic pop
     UIView *firstSubview = alert.view.subviews.firstObject;
     UIView *alertContentView = firstSubview.subviews.firstObject;
     for (UIView *subSubView in alertContentView.subviews) {
@@ -157,7 +150,10 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
     }
     NSMutableAttributedString *AS = [[NSMutableAttributedString alloc] initWithString:message];
     [AS addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:NSMakeRange(0, AS.length)];
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "KeyValueCodingInspection"
     [alert setValue:AS forKey:@"attributedTitle"];
+#pragma clang diagnostic pop
     [viewController presentViewController:alert animated:YES completion:nil];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [alert dismissViewControllerAnimated:YES completion:^{
@@ -169,12 +165,16 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^Boolean(UIViewController 
     UIViewController *topmostViewController = [FlutterAddtoappBridgePlugin topmostViewController];
     NSLog(@"handleMethodCall topViewController=%@, method=%@, arguments=%@", topmostViewController, call.method, call.arguments);
 
-    bool isHandled = false;
     if (onGlobalMethodCall != nil) {
-        isHandled = onGlobalMethodCall(topmostViewController, call, result);
-    }
-    if (!isHandled) {
-        isHandled = onDefaultGlobalMethodCall(topmostViewController, call, result);
+        onGlobalMethodCall(topmostViewController, call, ^(id _Nullable _result) {
+            if (FlutterMethodNotImplemented == _result) {
+                onDefaultGlobalMethodCall(topmostViewController, call, result);
+            } else {
+                result(_result);
+            }
+        });
+    } else {
+        onDefaultGlobalMethodCall(topmostViewController, call, result);
     }
 }
 

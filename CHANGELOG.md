@@ -39,3 +39,7 @@
 
 * fix bug
 * optimized README.md
+* 
+## 0.0.7
+
+* fix bug 

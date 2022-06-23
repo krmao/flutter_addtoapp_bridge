@@ -14,9 +14,21 @@ class MethodChannelFlutterAddtoappBridge extends FlutterAddtoappBridgePlatform {
     return Future.value(await callPlatform("getPlatformVersion"));
   }
 
+  /**
+   * objc should be return @(YES) not @(true), or it's runtimeType will be int
+   */
   @override
   Future<bool> isAddToApp() async {
-    return Future.value(await callPlatform("isAddToApp"));
+    var returnValue = await callPlatform("isAddToApp");
+    if (returnValue is int) {
+      print("isAddToApp=$returnValue type=${returnValue.runtimeType} objc should be return @(YES) not @(true)");
+      return Future.value(returnValue == 1);
+    } else if (returnValue is bool) {
+      return Future.value(returnValue);
+    } else {
+      print("isAddToApp=$returnValue type=${returnValue.runtimeType} objc should be return @(YES) not @(true)");
+      return Future.value(false);
+    }
   }
 
   @override

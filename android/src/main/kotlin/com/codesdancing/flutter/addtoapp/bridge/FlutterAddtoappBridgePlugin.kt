@@ -34,10 +34,21 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
         Log.d("flutter_addtoapp_bridge", "onMethodCall activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
-        // 优先自定义
-        val isHandled: Boolean = onGlobalMethodCall?.onCall(activity, call, result) ?: false
-        // 其次保底
-        if (!isHandled) {
+        if (onGlobalMethodCall != null) {
+            onGlobalMethodCall?.onCall(activity, call, object : Result {
+                override fun success(_result: Any?) {
+                    result.success(_result)
+                }
+
+                override fun error(errorCode: String?, errorMessage: String?, errorDetails: Any?) {
+                    result.error(errorCode, errorMessage, errorDetails)
+                }
+
+                override fun notImplemented() {
+                    onDefaultGlobalMethodCall.onCall(activity, call, result)
+                }
+            })
+        } else {
             onDefaultGlobalMethodCall.onCall(activity, call, result)
         }
     }
@@ -68,7 +79,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     }
 
     interface OnGlobalMethodCall {
-        fun onCall(@Nullable activity: Activity?, @NonNull call: MethodCall, @NonNull result: Result): Boolean
+        fun onCall(@Nullable activity: Activity?, @NonNull call: MethodCall, @NonNull result: Result)
     }
 
     @Suppress("unused")
@@ -78,18 +89,16 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
 
         @JvmStatic
         private var onDefaultGlobalMethodCall: OnGlobalMethodCall = object : OnGlobalMethodCall {
-            override fun onCall(activity: Activity?, call: MethodCall, result: Result): Boolean {
+            override fun onCall(activity: Activity?, call: MethodCall, result: Result) {
                 Log.d("onCall", "activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
                 if (call.method == "callPlatform") {
                     val argumentsWithFunctionNameArray = call.arguments as? ArrayList<*>
-                    return when (val functionName = argumentsWithFunctionNameArray?.first()) {
+                    when (val functionName = argumentsWithFunctionNameArray?.first()) {
                         "getPlatformVersion" -> {
                             result.success(Build.VERSION.RELEASE)
-                            true
                         }
                         "isAddToApp" -> {
                             result.success(onGlobalMethodCall != null)
-                            true
                         }
                         "putString" -> {
                             val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
@@ -104,7 +113,6 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             } else {
                                 result.error("-1", "key=$key is empty", null)
                             }
-                            true
                         }
                         "getString" -> {
                             val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
@@ -116,7 +124,6 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             } else {
                                 result.error("-1", "key=$key is empty", null)
                             }
-                            true
                         }
                         "putLong" -> {
                             val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
@@ -131,7 +138,6 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             } else {
                                 result.error("-1", "key=$key is empty", null)
                             }
-                            true
                         }
                         "getLong" -> {
                             val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
@@ -143,7 +149,6 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             } else {
                                 result.error("-1", "key=$key is empty", null)
                             }
-                            true
                         }
                         "putFloat" -> {
                             val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
@@ -158,7 +163,6 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             } else {
                                 result.error("-1", "key=$key is empty", null)
                             }
-                            true
                         }
                         "getFloat" -> {
                             val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
@@ -170,16 +174,13 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             } else {
                                 result.error("-1", "key=$key is empty", null)
                             }
-                            true
                         }
                         else -> {
-                            result.error("-1", "$functionName is not support", null)
-                            false
+                            result.notImplemented()
                         }
                     }
                 } else {
                     result.notImplemented()
-                    return false;
                 }
             }
         }
