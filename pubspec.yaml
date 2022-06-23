@@ -1,10 +1,10 @@
 name: flutter_addtoapp_bridge
 description: flutter addtoapp bridge for flutter call android/ios. so code in flutter page can open native page by this bridge.
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/krmao/flutter_addtoapp_bridge
 
 environment:
-  sdk: ">=2.16.2-266.7.beta <3.0.0"
+  sdk: ">=2.16.2 <3.0.0"
   flutter: ">=2.5.0"
 
 dependencies:

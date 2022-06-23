@@ -25,3 +25,8 @@
 ## 0.0.3
 
 * format dart code
+
+## 0.0.4
+
+* support set/get value
+* support check isaddtoapp
