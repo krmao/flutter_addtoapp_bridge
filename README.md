@@ -52,12 +52,12 @@ class _MyAppState extends State<MyApp> {
   
   if([@"callPlatform" isEqualToString:call.method]){
       NSLog(@"onCall %@" ,[call.arguments class]);
-      NSArray *argumentsWithFunctionNameArray = (NSArray *)call.arguments;
+      NSMutableArray *argumentsWithFunctionNameArray = (NSMutableArray *)call.arguments;
       NSString *functionName = [argumentsWithFunctionNameArray firstObject];
       if([@"getPlatformVersion" isEqualToString:functionName]){
           result([[UIDevice currentDevice] systemVersion]);
       }else if([@"open" isEqualToString:functionName]){
-          NSArray *argumentsArray = (NSArray *)[argumentsWithFunctionNameArray objectAtIndex:1];
+          NSMutableArray *argumentsArray = (NSMutableArray *)[argumentsWithFunctionNameArray objectAtIndex:1];
           NSString *url = [argumentsArray firstObject];
           NSLog(@"onCall open-> url==%@, arguments=%@", url, [argumentsArray objectAtIndex:1]);
           if([@"toast" isEqualToString:url]){
