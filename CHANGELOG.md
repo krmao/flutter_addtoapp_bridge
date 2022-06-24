@@ -56,3 +56,7 @@
 ## 0.0.10
 
 * The 3-Clause BSD License
+* 
+## 0.0.11
+
+* The MIT License
