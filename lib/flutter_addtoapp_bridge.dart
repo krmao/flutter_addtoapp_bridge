@@ -7,7 +7,7 @@ class FlutterAddtoappBridge {
     return FlutterAddtoappBridgePlatform.instance.getPlatformVersion();
   }
 
-  Future<bool?> isAddToApp() {
+  Future<bool> isAddToApp() {
     return FlutterAddtoappBridgePlatform.instance.isAddToApp();
   }
 
@@ -16,23 +16,23 @@ class FlutterAddtoappBridge {
   }
 
   Future<String?> getString(String key, {defaultValue = ""}) {
-    return FlutterAddtoappBridgePlatform.instance.getString(key, [defaultValue]);
+    return FlutterAddtoappBridgePlatform.instance.getString(key, defaultValue: defaultValue);
   }
 
-  Future<String?> putLong(String key, String value) {
+  Future<String?> putLong(String key, int value) {
     return FlutterAddtoappBridgePlatform.instance.putLong(key, value);
   }
 
-  Future<int?> getLong(String key, [defaultValue = 0]) {
-    return FlutterAddtoappBridgePlatform.instance.getLong(key, [defaultValue]);
+  Future<int?> getLong(String key, {defaultValue = 0}) {
+    return FlutterAddtoappBridgePlatform.instance.getLong(key, defaultValue: defaultValue);
   }
 
-  Future<String?> putFloat(String key, String value) {
+  Future<String?> putFloat(String key, double value) {
     return FlutterAddtoappBridgePlatform.instance.putFloat(key, value);
   }
 
-  Future<double?> getFloat(String key, [defaultValue = 0.0]) {
-    return FlutterAddtoappBridgePlatform.instance.getFloat(key, [defaultValue]);
+  Future<double?> getFloat(String key, {defaultValue = 0.0}) {
+    return FlutterAddtoappBridgePlatform.instance.getFloat(key, defaultValue: defaultValue);
   }
 
   Future<dynamic> open(String key, [dynamic value]) {

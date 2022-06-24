@@ -47,3 +47,8 @@
 ## 0.0.8
 
 * miss plugin exception return null
+
+
+## 0.0.9
+
+* fix putString getFloat bugs

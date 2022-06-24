@@ -37,27 +37,27 @@ class MethodChannelFlutterAddtoappBridge extends FlutterAddtoappBridgePlatform {
   }
 
   @override
-  Future<String?> getString(String key, [defaultValue = ""]) async {
+  Future<String?> getString(String key, {defaultValue = ""}) async {
     return Future.value(await callPlatform("getString", [key, defaultValue]));
   }
 
   @override
-  Future<String?> putLong(String key, String value) async {
+  Future<String?> putLong(String key, int value) async {
     return Future.value(await callPlatform("putLong", [key, value]));
   }
 
   @override
-  Future<int?> getLong(String key, [defaultValue = 0]) async {
+  Future<int?> getLong(String key, {defaultValue = 0}) async {
     return Future.value(await callPlatform("getLong", [key, defaultValue]));
   }
 
   @override
-  Future<String?> putFloat(String key, String value) async {
+  Future<String?> putFloat(String key, double value) async {
     return Future.value(await callPlatform("putFloat", [key, value]));
   }
 
   @override
-  Future<double?> getFloat(String key, [defaultValue = 0.0]) async {
+  Future<double?> getFloat(String key, {defaultValue = 0.0}) async {
     return Future.value(await callPlatform("getFloat", [key, defaultValue]));
   }
 

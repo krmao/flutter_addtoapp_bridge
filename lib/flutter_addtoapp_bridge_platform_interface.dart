@@ -4,16 +4,12 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'flutter_addtoapp_bridge_method_channel.dart';
 
 abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
-  /// Constructs a FlutterAddtoappBridgePlatform.
   FlutterAddtoappBridgePlatform() : super(token: _token);
 
   static final Object _token = Object();
 
   static FlutterAddtoappBridgePlatform _instance = MethodChannelFlutterAddtoappBridge();
 
-  /// The default instance of [FlutterAddtoappBridgePlatform] to use.
-  ///
-  /// Defaults to [MethodChannelFlutterAddtoappBridge].
   static FlutterAddtoappBridgePlatform get instance => _instance;
 
   /// Platform-specific implementations should set this with their own
@@ -33,34 +29,34 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
   }
 
   Future<String?> getPlatformVersion() {
-    throw UnimplementedError('callPlatform() has not been implemented.');
+    throw UnimplementedError('getPlatformVersion() has not been implemented.');
   }
 
-  Future<bool?> isAddToApp() {
-    throw UnimplementedError('callPlatform() has not been implemented.');
+  Future<bool> isAddToApp() {
+    throw UnimplementedError('isAddToApp() has not been implemented.');
   }
 
   Future<String?> putString(String key, String value) {
-    throw UnimplementedError('callPlatform() has not been implemented.');
+    throw UnimplementedError('putString() has not been implemented.');
   }
 
-  Future<String?> getString(String key, [defaultValue = ""]) {
-    throw UnimplementedError('callPlatform() has not been implemented.');
+  Future<String?> getString(String key, {defaultValue = ""}) {
+    throw UnimplementedError('getString() has not been implemented.');
   }
 
-  Future<String?> putLong(String key, String value) {
-    throw UnimplementedError('callPlatform() has not been implemented.');
+  Future<String?> putLong(String key, int value) {
+    throw UnimplementedError('putLong() has not been implemented.');
   }
 
-  Future<int?> getLong(String key, [defaultValue = 0]) {
-    throw UnimplementedError('callPlatform() has not been implemented.');
+  Future<int?> getLong(String key, {defaultValue = 0}) {
+    throw UnimplementedError('getLong() has not been implemented.');
   }
 
-  Future<String?> putFloat(String key, String value) {
-    throw UnimplementedError('callPlatform() has not been implemented.');
+  Future<String?> putFloat(String key, double value) {
+    throw UnimplementedError('putFloat() has not been implemented.');
   }
 
-  Future<double?> getFloat(String key, [defaultValue = 0.0]) {
-    throw UnimplementedError('callPlatform() has not been implemented.');
+  Future<double?> getFloat(String key, {defaultValue = 0.0}) {
+    throw UnimplementedError('getFloat() has not been implemented.');
   }
 }

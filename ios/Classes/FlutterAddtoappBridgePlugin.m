@@ -10,7 +10,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
     NSLog(@"--> onDefaultGlobalMethodCall (oc) topViewController=%@, method=%@, arguments=%@", topViewController, call.method, call.arguments);
     if ([@"callPlatform" isEqualToString:call.method]) {
         NSLog(@"onCall %@", [call.arguments class]);
-        NSArray *argumentsWithFunctionNameArray = (NSArray *) call.arguments;
+        NSMutableArray *argumentsWithFunctionNameArray = (NSMutableArray *) call.arguments;
         NSString *functionName = [argumentsWithFunctionNameArray firstObject];
         if ([@"getPlatformVersion" isEqualToString:functionName]) {
             result([[UIDevice currentDevice] systemVersion]);
@@ -18,16 +18,16 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             result(onGlobalMethodCall ? @(YES) : @(NO));
         } else if ([@"putString" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
-            NSString *key = [argumentsArray[0] stringValue];
-            NSString *value = [argumentsArray[1] stringValue];
+            NSString *key = argumentsArray[0];
+            NSString *value = argumentsArray[1];
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             [defaults setObject:value forKey:key];
             [defaults synchronize];
             result(@"0");
         } else if ([@"getString" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
-            NSString *key = [argumentsArray[0] stringValue];
-            NSString *defaultValue = [argumentsArray[1] stringValue];
+            NSString *key = argumentsArray[0];
+            NSString *defaultValue = argumentsArray[1];
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             NSString *returnValue = [defaults stringForKey:key];
             if (returnValue == nil) {
@@ -36,7 +36,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             result(returnValue);
         } else if ([@"putLong" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
-            NSString *key = [argumentsArray[0] stringValue];
+            NSString *key = argumentsArray[0];
             NSInteger value = [argumentsArray[1] integerValue];
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             [defaults setObject:@(value) forKey:key]; // object can check if contains
@@ -44,7 +44,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             result(@"0");
         } else if ([@"getLong" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
-            NSString *key = [argumentsArray[0] stringValue];
+            NSString *key = argumentsArray[0];
             long long defaultValue = [argumentsArray[1] longLongValue];
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             if ([defaults objectForKey:key] == nil) {
@@ -54,7 +54,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             }
         } else if ([@"putFloat" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
-            NSString *key = [argumentsArray[0] stringValue];
+            NSString *key = argumentsArray[0];
             double value = [argumentsArray[1] doubleValue];
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             [defaults setObject:@(value) forKey:key]; // object can check if contains
@@ -62,13 +62,13 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             result(@"0");
         } else if ([@"getFloat" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
-            NSString *key = [argumentsArray[0] stringValue];
+            NSString *key = argumentsArray[0];
             double defaultValue = [argumentsArray[1] doubleValue];
             NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
             if ([defaults objectForKey:key] == nil) {
                 result(@(defaultValue));
             } else {
-                result(@([defaults integerForKey:key]));
+                result(@([defaults doubleForKey:key]));
             }
         } else {
             result(FlutterMethodNotImplemented);

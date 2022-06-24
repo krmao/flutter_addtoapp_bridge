@@ -13,12 +13,12 @@ class MockFlutterAddtoappBridgePlatform with MockPlatformInterfaceMixin implemen
   void setMethodCallHandler(Future Function(MethodCall call)? handler) {}
 
   @override
-  Future<double> getFloat(String key, [defaultValue = 0.0]) {
+  Future<double> getFloat(String key, {defaultValue = 0.0}) {
     return Future.value(0.0);
   }
 
   @override
-  Future<int> getLong(String key, [defaultValue = 0]) {
+  Future<int> getLong(String key, {defaultValue = 0}) {
     return Future.value(0);
   }
 
@@ -28,7 +28,7 @@ class MockFlutterAddtoappBridgePlatform with MockPlatformInterfaceMixin implemen
   }
 
   @override
-  Future<String> getString(String key, [defaultValue = ""]) {
+  Future<String> getString(String key, {defaultValue = ""}) {
     return Future.value('0');
   }
 
@@ -38,12 +38,12 @@ class MockFlutterAddtoappBridgePlatform with MockPlatformInterfaceMixin implemen
   }
 
   @override
-  Future<String> putFloat(String key, String value) {
+  Future<String> putFloat(String key, double value) {
     return Future.value('0');
   }
 
   @override
-  Future<String> putLong(String key, String value) {
+  Future<String> putLong(String key, int value) {
     return Future.value('0');
   }
 

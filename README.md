@@ -4,7 +4,7 @@ flutter addtoapp bridge for flutter call android/ios.
 
 ## both android and ios functions
 * getPlatformVersion
-* isAddToApp
+* isAddToApp -> check env is default or addtoapp
 * putString
 * getString
 * putLong
@@ -12,17 +12,13 @@ flutter addtoapp bridge for flutter call android/ios.
 * putFloat
 * getFloat
 * open
-* callPlatform
+* callPlatform -> return null if MissingPluginException
 * setMethodCallHandler
 
 
 ## Usage(flutter call android/ios)
 
 > [flutter_addtoapp_bridge/versions](https://pub.flutter-io.cn/packages/flutter_addtoapp_bridge/versions)
-
-```yaml
-flutter_addtoapp_bridge: ^x.x.x
-```
 
 - dart
 
