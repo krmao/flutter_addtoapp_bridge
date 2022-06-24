@@ -39,7 +39,8 @@
 
 * fix bug
 * optimized README.md
-* 
+*
+
 ## 0.0.7
 
 * fix bug
@@ -48,7 +49,10 @@
 
 * miss plugin exception return null
 
-
 ## 0.0.9
 
 * fix putString getFloat bugs
+
+## 0.0.10
+
+* The 3-Clause BSD License
