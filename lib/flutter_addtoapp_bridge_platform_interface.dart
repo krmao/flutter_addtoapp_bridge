@@ -36,6 +36,10 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
     throw UnimplementedError('isAddToApp() has not been implemented.');
   }
 
+  Future<bool> exitApp() {
+    throw UnimplementedError('exitApp() has not been implemented.');
+  }
+
   Future<String?> putString(String key, String value) {
     throw UnimplementedError('putString() has not been implemented.');
   }

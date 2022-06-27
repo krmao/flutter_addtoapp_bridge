@@ -11,6 +11,10 @@ class FlutterAddtoappBridge {
     return FlutterAddtoappBridgePlatform.instance.isAddToApp();
   }
 
+  Future<bool> exitApp() {
+    return FlutterAddtoappBridgePlatform.instance.exitApp();
+  }
+
   Future<String?> putString(String key, String value) {
     return FlutterAddtoappBridgePlatform.instance.putString(key, value);
   }

@@ -70,6 +70,9 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             } else {
                 result(@([defaults doubleForKey:key]));
             }
+        } else if ([@"exitApp" isEqualToString:functionName]) {
+            exit(0);
+            result(@(YES));
         } else {
             result(FlutterMethodNotImplemented);
         }

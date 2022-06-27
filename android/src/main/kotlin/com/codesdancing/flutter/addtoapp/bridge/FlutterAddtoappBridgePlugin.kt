@@ -1,9 +1,11 @@
 package com.codesdancing.flutter.addtoapp.bridge
 
 import android.app.Activity
+import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Build
+import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
 import android.widget.Toast
@@ -17,6 +19,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
+import java.lang.ref.SoftReference
 
 /** FlutterAddtoappBridgePlugin */
 class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
@@ -24,18 +27,36 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
-    private var activity: Activity? = null
+    private var currentBindingActivityRef: SoftReference<Activity>? = null
+    private var application: Application? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        Log.d("flutter_addtoapp_bridge", "onAttachedToEngine")
+        Log.d(TAG, "onAttachedToEngine")
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_addtoapp_bridge")
         channel?.setMethodCallHandler(this)
+
+        var context = flutterPluginBinding.applicationContext
+        var lastContext: Context? = null
+        while (context != lastContext) {
+            Log.w(TAG, "trying to resolve Application from Context: ${context.javaClass.name}")
+            lastContext = context
+            application = context as? Application
+            if (application != null) {
+                break
+            } else {
+                context = context.applicationContext
+            }
+        }
+        Log.e(TAG, "${if (application == null) "failure" else "success"} to resolve Application from Context")
+
+        application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+        application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        Log.d("flutter_addtoapp_bridge", "onMethodCall activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
+        Log.d(TAG, "onMethodCall activity=${currentBindingActivityRef?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
         if (onGlobalMethodCall != null) {
-            onGlobalMethodCall?.onCall(activity, call, object : Result {
+            onGlobalMethodCall?.onCall(currentBindingActivityRef?.get(), call, object : Result {
                 override fun success(_result: Any?) {
                     result.success(_result)
                 }
@@ -45,36 +66,36 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                 }
 
                 override fun notImplemented() {
-                    onDefaultGlobalMethodCall.onCall(activity, call, result)
+                    onDefaultGlobalMethodCall.onCall(currentBindingActivityRef?.get(), call, result)
                 }
             })
         } else {
-            onDefaultGlobalMethodCall.onCall(activity, call, result)
+            onDefaultGlobalMethodCall.onCall(currentBindingActivityRef?.get(), call, result)
         }
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
-        Log.d("flutter_addtoapp_bridge", "onAttachedToActivity ${binding.activity}")
-        this.activity = binding.activity
+        Log.d(TAG, "onAttachedToActivity ${binding.activity}")
+        this.currentBindingActivityRef = SoftReference(binding.activity)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
-        Log.d("flutter_addtoapp_bridge", "onDetachedFromActivityForConfigChanges")
-        this.activity = null
+        Log.d(TAG, "onDetachedFromActivityForConfigChanges")
+        this.currentBindingActivityRef = null
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-        Log.d("flutter_addtoapp_bridge", "onReattachedToActivityForConfigChanges")
-        this.activity = binding.activity
+        Log.d(TAG, "onReattachedToActivityForConfigChanges")
+        this.currentBindingActivityRef = SoftReference(binding.activity)
     }
 
     override fun onDetachedFromActivity() {
-        Log.d("flutter_addtoapp_bridge", "onDetachedFromActivity")
-        this.activity = null
+        Log.d(TAG, "onDetachedFromActivity")
+        this.currentBindingActivityRef = null
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        Log.d("flutter_addtoapp_bridge", "onDetachedFromEngine")
+        Log.d(TAG, "onDetachedFromEngine")
         channel?.setMethodCallHandler(null)
     }
 
@@ -87,13 +108,15 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         @JvmStatic
         private var onGlobalMethodCall: OnGlobalMethodCall? = null
 
+        const val TAG: String = "flutter_addtoapp_bridge"
+
         @JvmStatic
         private var onDefaultGlobalMethodCall: OnGlobalMethodCall = object : OnGlobalMethodCall {
             override fun onCall(activity: Activity?, call: MethodCall, result: Result) {
                 Log.d("onCall", "activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
                 if (call.method == "callPlatform") {
                     val argumentsWithFunctionNameArray = call.arguments as? ArrayList<*>
-                    when (val functionName = argumentsWithFunctionNameArray?.first()) {
+                    when (argumentsWithFunctionNameArray?.first()) {
                         "getPlatformVersion" -> {
                             result.success(Build.VERSION.RELEASE)
                         }
@@ -175,6 +198,10 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                                 result.error("-1", "key=$key is empty", null)
                             }
                         }
+                        "exitApp" -> {
+                            activityLinkedHashMap.forEach { it.value.get()?.finish() }
+                            result.success(true)
+                        }
                         else -> {
                             result.notImplemented()
                         }
@@ -191,6 +218,28 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         }
 
         private var channel: MethodChannel? = null
+
+
+        private var activityLinkedHashMap = linkedMapOf<String, SoftReference<Activity>>()
+        private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = object : Application.ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                activityLinkedHashMap[activity.toString()] = SoftReference(activity)
+            }
+
+            override fun onActivityStarted(activity: Activity) {}
+
+            override fun onActivityResumed(activity: Activity) {}
+
+            override fun onActivityPaused(activity: Activity) {}
+
+            override fun onActivityStopped(activity: Activity) {}
+
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+            override fun onActivityDestroyed(activity: Activity) {
+                activityLinkedHashMap.remove(activity.toString())
+            }
+        }
 
         /**
          * @return false if innerMethodChannel is null

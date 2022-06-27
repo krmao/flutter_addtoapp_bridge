@@ -31,6 +31,23 @@ class MethodChannelFlutterAddtoappBridge extends FlutterAddtoappBridgePlatform {
     }
   }
 
+  /**
+   * objc should be return @(YES) not @(true), or it's runtimeType will be int
+   */
+  @override
+  Future<bool> exitApp() async {
+    var returnValue = await callPlatform("exitApp");
+    if (returnValue is int) {
+      print("exitApp=$returnValue type=${returnValue.runtimeType} objc should be return @(YES) not @(true)");
+      return Future.value(returnValue == 1);
+    } else if (returnValue is bool) {
+      return Future.value(returnValue);
+    } else {
+      print("exitApp=$returnValue type=${returnValue.runtimeType} objc should be return @(YES) not @(true)");
+      return Future.value(false);
+    }
+  }
+
   @override
   Future<String?> putString(String key, String value) async {
     return Future.value(await callPlatform("putString", [key, value]));
