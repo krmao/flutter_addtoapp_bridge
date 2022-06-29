@@ -73,6 +73,16 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
         } else if ([@"exitApp" isEqualToString:functionName]) {
             exit(0);
             result(@(YES));
+        } else if ([@"back" isEqualToString:functionName]) {
+            NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
+            int count = [argumentsArray[0] intValue];
+            [FlutterAddtoappBridgePlugin back:topViewController count:count];
+            result(@(YES));
+        } else if ([@"showToast" isEqualToString:functionName]) {
+            NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
+            NSString *message = argumentsArray[0];
+            [FlutterAddtoappBridgePlugin showToast:topViewController message:message];
+            result(@(YES));
         } else {
             result(FlutterMethodNotImplemented);
         }
@@ -82,6 +92,60 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
 };
 
 @implementation FlutterAddtoappBridgePlugin
+
++ (void)runBlockInMainThread:(dispatch_block_t _Nonnull)block {
+    if (block == nil) {
+        return;
+    }
+    if ([NSThread isMainThread]) {
+        block();
+    } else {
+        dispatch_async(dispatch_get_main_queue(), block);
+    }
+}
+
++ (void)back:(UIViewController *_Nullable)currentViewController count:(NSInteger)count {
+    NSLog(@"--> back currentViewController=%@ count=%ld", currentViewController, count);
+    if (!currentViewController || (count <= 0 && count != -1)) {
+        return;
+    }
+    BOOL animated = YES;
+    [FlutterAddtoappBridgePlugin runBlockInMainThread:^{
+        NSUInteger finalCount = (NSUInteger) count;
+        if (currentViewController.navigationController) {
+            if (count == -1) {
+                [currentViewController.navigationController popToRootViewControllerAnimated:animated];
+            } else {
+                NSUInteger allCount = currentViewController.navigationController.viewControllers.count;
+                if (allCount == 1) {
+                    exit(0);
+                } else {
+                    if (finalCount > allCount) {
+                        finalCount = 1;
+                    }
+                    UIViewController *toVC = currentViewController.navigationController.viewControllers[(allCount - finalCount - 1)];
+                    [currentViewController.navigationController popToViewController:toVC animated:animated];
+                }
+            }
+        } else {
+            UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
+            if (rootViewController == currentViewController) {
+                exit(0);
+            } else {
+                if (count == -1) {
+                    if (rootViewController.navigationController) {
+                        [rootViewController.navigationController popToRootViewControllerAnimated:true];
+                    } else {
+                        [[UIApplication sharedApplication].keyWindow.rootViewController dismissViewControllerAnimated:true completion:nil];
+                    };
+                } else {
+                    [currentViewController dismissViewControllerAnimated:YES completion:nil];
+                }
+            }
+        }
+    }];
+}
+
 + (void)registerWithRegistrar:(NSObject <FlutterPluginRegistrar> *)registrar {
     channel = [FlutterMethodChannel
             methodChannelWithName:@"flutter_addtoapp_bridge"

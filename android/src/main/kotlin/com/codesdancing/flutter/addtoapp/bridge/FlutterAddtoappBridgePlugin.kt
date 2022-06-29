@@ -219,6 +219,18 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             activityLinkedHashMap.forEach { it.value.get()?.finish() }
                             result.success(true)
                         }
+                        "back" -> {
+                            val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
+                            val count: Int = argumentsArray?.getOrNull(0) as? Int ?: 1
+                            back(count)
+                            result.success(true)
+                        }
+                        "showToast" -> {
+                            val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
+                            val message: String = argumentsArray?.getOrNull(0) as? String ?: ""
+                            showToast(activity, message)
+                            result.success(true)
+                        }
                         else -> {
                             result.notImplemented()
                         }
@@ -232,6 +244,27 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         @JvmStatic
         fun setOnGlobalMethodCall(onGlobalMethodCall: OnGlobalMethodCall?) {
             this.onGlobalMethodCall = onGlobalMethodCall
+        }
+
+        @JvmStatic
+        @JvmOverloads
+        fun back(count: Int = 1) {
+            var finalCount = count;
+            val activityLinkedHashMapKeys = activityLinkedHashMap.keys
+            if (activityLinkedHashMapKeys.size > 0) {
+                if (finalCount > activityLinkedHashMapKeys.size) {
+                    finalCount = 1;
+                }
+                if (count == -1) {
+                    finalCount = activityLinkedHashMapKeys.size - 1
+                }
+                for (index in activityLinkedHashMapKeys.size - 1 downTo activityLinkedHashMapKeys.size - finalCount step 1) {
+                    val key = activityLinkedHashMapKeys.elementAt(index)
+                    activityLinkedHashMap[key]?.get()?.finish()
+                    activityLinkedHashMap.remove(key)
+                }
+                activityLinkedHashMap.forEach { it.value.get()?.finish() }
+            }
         }
 
         private var channel: MethodChannel? = null

@@ -40,6 +40,14 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
     throw UnimplementedError('exitApp() has not been implemented.');
   }
 
+  void back({count = 1}) {
+    throw UnimplementedError('back() has not been implemented.');
+  }
+
+  void showToast(String message) {
+    throw UnimplementedError('toast has not been implemented.');
+  }
+
   Future<String?> putString(String key, String value) {
     throw UnimplementedError('putString() has not been implemented.');
   }

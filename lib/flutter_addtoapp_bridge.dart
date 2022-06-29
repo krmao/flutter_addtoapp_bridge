@@ -15,6 +15,14 @@ class FlutterAddtoappBridge {
     return FlutterAddtoappBridgePlatform.instance.exitApp();
   }
 
+  static void back({count = 1}) {
+    return FlutterAddtoappBridgePlatform.instance.back(count: count);
+  }
+
+  static void showToast(String message) {
+    return FlutterAddtoappBridgePlatform.instance.showToast(message);
+  }
+
   static Future<String?> putString(String key, String value) {
     return FlutterAddtoappBridgePlatform.instance.putString(key, value);
   }

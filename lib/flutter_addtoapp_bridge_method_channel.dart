@@ -49,6 +49,20 @@ class MethodChannelFlutterAddtoappBridge extends FlutterAddtoappBridgePlatform {
   }
 
   @override
+  void back({count = 1}) {
+    callPlatform("back", [count]);
+  }
+
+  @override
+  void showToast(String? message) {
+    if (message == null || message.isEmpty) {
+      print("toast message=$message shouldn't null or empty!");
+      return;
+    }
+    callPlatform("showToast", [message]);
+  }
+
+  @override
   Future<String?> putString(String key, String value) async {
     return Future.value(await callPlatform("putString", [key, value]));
   }

@@ -56,6 +56,16 @@ class MockFlutterAddtoappBridgePlatform with MockPlatformInterfaceMixin implemen
   Future<bool> exitApp() {
     return Future.value(false);
   }
+
+  @override
+  Future<void> back({count = 1}) {
+    return Future.value(false);
+  }
+
+  @override
+  Future<void> showToast(String message) {
+    return Future.value(false);
+  }
 }
 
 void main() {

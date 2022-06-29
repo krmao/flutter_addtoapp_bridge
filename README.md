@@ -11,6 +11,9 @@ flutter addtoapp bridge for flutter call android/ios.
 * getLong
 * putFloat
 * getFloat
+* showToast
+* exitApp
+* back -1 to home, if count==1 and all page size == 1, will exit app
 * open
 * callPlatform -> return null if MissingPluginException
 * setMethodCallHandler
