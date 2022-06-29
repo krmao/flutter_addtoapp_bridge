@@ -66,10 +66,9 @@ void main() {
   });
 
   test('getPlatformVersion', () async {
-    FlutterAddtoappBridge flutterAddtoappBridgePlugin = FlutterAddtoappBridge();
     MockFlutterAddtoappBridgePlatform fakePlatform = MockFlutterAddtoappBridgePlatform();
     FlutterAddtoappBridgePlatform.instance = fakePlatform;
 
-    expect(await flutterAddtoappBridgePlugin.getPlatformVersion(), '42');
+    expect(await FlutterAddtoappBridge.getPlatformVersion(), '42');
   });
 }
