@@ -29,7 +29,6 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     /// when the Flutter Engine is detached from the Activity
     private var currentBindingActivityRefKey: String? = null
     private var currentBindingActivityRef: SoftReference<Activity>? = null
-    private var application: Application? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         Log.d(TAG, "onAttachedToEngine activityLinkedHashMap=${activityLinkedHashMap.size}")
@@ -55,7 +54,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        Log.d(TAG, "onMethodCall activity=${currentBindingActivityRef?.hashCode()}, method=${call.method}, arguments=${call.arguments}, activityLinkedHashMap=${activityLinkedHashMap.size}")
+        Log.d(TAG, "onMethodCall activity=${currentBindingActivityRef?.get()?.toString()}, method=${call.method}, arguments=${call.arguments}, activityLinkedHashMap=${activityLinkedHashMap.size}")
         if (onGlobalMethodCall != null) {
             onGlobalMethodCall?.onCall(currentBindingActivityRef?.get(), call, object : Result {
                 override fun success(_result: Any?) {
@@ -142,7 +141,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             result.success(onGlobalMethodCall != null)
                         }
                         "putString" -> {
-                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val sharedPreferences = application?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
                             val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
                             val key = argumentsArray?.getOrNull(0) as? String
                             if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
@@ -156,7 +155,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             }
                         }
                         "getString" -> {
-                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val sharedPreferences = application?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
                             val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
                             val key = argumentsArray?.getOrNull(0) as? String
                             if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
@@ -167,7 +166,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             }
                         }
                         "putLong" -> {
-                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val sharedPreferences = application?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
                             val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
                             val key = argumentsArray?.getOrNull(0) as? String
                             if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
@@ -181,7 +180,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             }
                         }
                         "getLong" -> {
-                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val sharedPreferences = application?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
                             val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
                             val key = argumentsArray?.getOrNull(0) as? String
                             if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
@@ -192,7 +191,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             }
                         }
                         "putFloat" -> {
-                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val sharedPreferences = application?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
                             val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
                             val key = argumentsArray?.getOrNull(0) as? String
                             if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
@@ -206,7 +205,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             }
                         }
                         "getFloat" -> {
-                            val sharedPreferences = activity?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
+                            val sharedPreferences = application?.getSharedPreferences("flutter.addtoapp.sp", Context.MODE_PRIVATE)
                             val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
                             val key = argumentsArray?.getOrNull(0) as? String
                             if (!TextUtils.isEmpty(key) && sharedPreferences != null) {
@@ -237,12 +236,12 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
 
         private var channel: MethodChannel? = null
 
-
+        private var application: Application? = null
         private var activityLinkedHashMap = linkedMapOf<String, SoftReference<Activity>>()
         private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
                 activityLinkedHashMap[activity.toString()] = SoftReference(activity)
-                Log.d(TAG, "onActivityCreated activityLinkedHashMap=${activityLinkedHashMap.size}")
+                Log.d(TAG, "onActivityCreated $activity activityLinkedHashMap=${activityLinkedHashMap.size}")
             }
 
             override fun onActivityStarted(activity: Activity) {}
@@ -257,7 +256,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
 
             override fun onActivityDestroyed(activity: Activity) {
                 activityLinkedHashMap.remove(activity.toString())
-                Log.d(TAG, "onActivityDestroyed activityLinkedHashMap=${activityLinkedHashMap.size}")
+                Log.d(TAG, "onActivityDestroyed $activity activityLinkedHashMap=${activityLinkedHashMap.size}")
             }
         }
 
