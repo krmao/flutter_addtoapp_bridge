@@ -1,9 +1,13 @@
 #import "FlutterAddtoappBridgePlugin.h"
+#import "../../example/ios/Runner/GeneratedPluginRegistrant.h"
+@import GeneratedPluginRegistrant;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedMethodInspection"
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
+
+static FlutterEngineGroup *flutterEngineGroup = nil;
 static FlutterMethodChannel *channel = nil;
 static OnGlobalMethodCall onGlobalMethodCall = nil;
 static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nullable topViewController, FlutterMethodCall *_Nonnull call, FlutterResult _Nonnull result) {
@@ -151,6 +155,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             methodChannelWithName:@"flutter_addtoapp_bridge"
                   binaryMessenger:[registrar messenger]];
     FlutterAddtoappBridgePlugin *instance = [[FlutterAddtoappBridgePlugin alloc] init];
+    flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
     [registrar addMethodCallDelegate:instance channel:channel];
 }
 
@@ -226,6 +231,29 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
         [alert dismissViewControllerAnimated:YES completion:^{
         }];
     });
+}
+
++ (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(Boolean)destroyEngine transparent:(Boolean)transparent {
+    if (viewController) {
+        FlutterViewController *flutterViewController = [FlutterAddtoappBridgePlugin getViewControllerWithEntrypoint:entryPoint initialRoute:initialRoute destroyEngine:destroyEngine transparent:transparent];
+        if (viewController.navigationController && !transparent) {
+            [viewController.navigationController pushViewController:flutterViewController animated:true];
+        } else {
+            [viewController presentViewController:flutterViewController animated:true completion:nil];
+        }
+    }
+}
+
++ (FlutterViewController *_Nullable)getViewControllerWithEntrypoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(Boolean)destroyEngine transparent:(Boolean)transparent {
+    FlutterEngine *flutterEngine = [flutterEngineGroup makeEngineWithEntrypoint:(entryPoint == nil ? @"main" : entryPoint) libraryURI:nil initialRoute:(initialRoute == nil ? @"/" : initialRoute)];
+    FlutterViewController *flutterViewController = [[FlutterViewController alloc] initWithEngine:flutterEngine nibName:nil bundle:nil];
+    if (transparent) {
+        flutterViewController.definesPresentationContext = YES;
+        flutterViewController.view.backgroundColor = [UIColor clearColor];
+        flutterViewController.modalPresentationStyle = UIModalPresentationCurrentContext;
+        [flutterViewController setViewOpaque:false];
+    }
+    return flutterViewController;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result {

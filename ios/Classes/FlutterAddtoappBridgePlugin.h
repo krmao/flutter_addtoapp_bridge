@@ -17,6 +17,8 @@ typedef void (^OnGlobalMethodCall)(UIViewController *_Nullable topViewController
 + (void)runBlockInMainThread:(dispatch_block_t _Nonnull)block;
 
 + (void)back:(UIViewController * _Nullable)currentViewController count:(NSInteger)count;
++ (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(Boolean)destroyEngine transparent:(Boolean)transparent;
++ (FlutterViewController *_Nullable)getViewControllerWithEntrypoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(Boolean)destroyEngine transparent:(Boolean)transparent;
 @end
 
 #pragma clang diagnostic pop

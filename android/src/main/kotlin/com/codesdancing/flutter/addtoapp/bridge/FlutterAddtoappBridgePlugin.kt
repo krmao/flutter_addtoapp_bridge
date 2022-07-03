@@ -247,10 +247,9 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             val entrypoint: String = argumentsArray?.getOrNull(0) as? String ?: ""
                             val argumentsMap = argumentsArray?.getOrNull(1) as? HashMap<*, *> ?: hashMapOf<String, String?>()
                             val initialRoute: String = argumentsMap["initialRoute"] as? String ?: "/"
-                            val newEngine: Boolean = argumentsMap["newEngine"] as? Boolean ?: false
                             val destroyEngine: Boolean = argumentsMap["destroyEngine"] as? Boolean ?: false
                             val transparent: Boolean = argumentsMap["transparent"] as? Boolean ?: false
-                            openContainer(activity, entrypoint, initialRoute, newEngine, destroyEngine, transparent)
+                            openContainer(activity, entrypoint, initialRoute, destroyEngine, transparent)
                             result.success(true)
                         }
                         else -> {
@@ -344,11 +343,11 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
 
         @JvmStatic
         @JvmOverloads
-        fun openContainer(context: Context?, entrypoint: String? = "main", initialRoute: String = "/", newEngine: Boolean = false, destroyEngine: Boolean = false, transparent: Boolean = false) {
+        fun openContainer(context: Context?, entrypoint: String? = "main", initialRoute: String = "/", destroyEngine: Boolean = false, transparent: Boolean = false) {
             if (context == null || (context is Activity && context.isFinishing) || entrypoint == null) {
                 return
             }
-            val intent = getIntentWithEntrypoint(context, entrypoint, initialRoute, newEngine, destroyEngine, transparent)
+            val intent = getIntentWithEntrypoint(context, entrypoint, initialRoute, destroyEngine, transparent)
             if (intent != null) {
                 context.startActivity(intent)
             }
@@ -360,7 +359,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         @JvmStatic
         @JvmOverloads
         fun getIntentWithEntrypoint(
-            context: Context?, entrypoint: String? = "main", initialRoute: String = "/", newEngine: Boolean = false, destroyEngine: Boolean = false, transparent: Boolean = false
+            context: Context?, entrypoint: String? = "main", initialRoute: String = "/", destroyEngine: Boolean = false, transparent: Boolean = false
         ): Intent? {
             val tmpFlutterEngineGroup = flutterEngineGroup
             if (context == null || (context is Activity && context.isFinishing) || tmpFlutterEngineGroup == null || entrypoint == null) {
@@ -368,11 +367,8 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             }
             val cachedEngine = FlutterEngineCache.getInstance().get(entrypoint)
             val dartEntrypoint = DartEntrypoint(FlutterInjector.instance().flutterLoader().findAppBundlePath(), entrypoint)
-            if (cachedEngine == null || newEngine) {
-                val flutterEngine = tmpFlutterEngineGroup.createAndRunEngine(context, dartEntrypoint)
-                // 在 runApp() 的首次执行之后，修改导航通道中的初始路由属性是不会生效的
-                flutterEngine.navigationChannel.setInitialRoute(initialRoute)
-                flutterEngine.dartExecutor.executeDartEntrypoint(dartEntrypoint)
+            if (cachedEngine == null) {
+                val flutterEngine = tmpFlutterEngineGroup.createAndRunEngine(context, dartEntrypoint, initialRoute)
                 FlutterEngineCache.getInstance().put(entrypoint, flutterEngine)
             }
             return FlutterActivity.CachedEngineIntentBuilder(FlutterActivity::class.java, entrypoint)
