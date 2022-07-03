@@ -1,6 +1,4 @@
 #import "FlutterAddtoappBridgePlugin.h"
-#import "../../example/ios/Runner/GeneratedPluginRegistrant.h"
-@import GeneratedPluginRegistrant;
 
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedMethodInspection"
@@ -76,7 +74,6 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             }
         } else if ([@"exitApp" isEqualToString:functionName]) {
             exit(0);
-            result(@(YES));
         } else if ([@"back" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             int count = [argumentsArray[0] intValue];
@@ -86,6 +83,15 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             NSString *message = argumentsArray[0];
             [FlutterAddtoappBridgePlugin showToast:topViewController message:message];
+            result(@(YES));
+        } else if ([@"openContainer" isEqualToString:functionName]) {
+            NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
+            NSString *entrypoint = argumentsArray[0];
+            NSDictionary *argumentsMap = (NSDictionary *) argumentsArray[1];
+            NSString *initialRoute = (NSString *) [argumentsMap valueForKey:@"initialRoute"];
+            BOOL destroyEngine =  [[argumentsMap valueForKey:@"destroyEngine"] boolValue];
+            BOOL transparent =  [[argumentsMap valueForKey:@"transparent"] boolValue];
+            [FlutterAddtoappBridgePlugin openContainer:topViewController entryPoint:entrypoint initialRoute:initialRoute destroyEngine:destroyEngine transparent:transparent];
             result(@(YES));
         } else {
             result(FlutterMethodNotImplemented);
@@ -233,7 +239,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
     });
 }
 
-+ (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(Boolean)destroyEngine transparent:(Boolean)transparent {
++ (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(BOOL)destroyEngine transparent:(BOOL)transparent {
     if (viewController) {
         FlutterViewController *flutterViewController = [FlutterAddtoappBridgePlugin getViewControllerWithEntrypoint:entryPoint initialRoute:initialRoute destroyEngine:destroyEngine transparent:transparent];
         if (viewController.navigationController && !transparent) {
@@ -244,7 +250,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
     }
 }
 
-+ (FlutterViewController *_Nullable)getViewControllerWithEntrypoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(Boolean)destroyEngine transparent:(Boolean)transparent {
++ (FlutterViewController *_Nullable)getViewControllerWithEntrypoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(__attribute__((unused)) BOOL)destroyEngine transparent:(BOOL)transparent {
     FlutterEngine *flutterEngine = [flutterEngineGroup makeEngineWithEntrypoint:(entryPoint == nil ? @"main" : entryPoint) libraryURI:nil initialRoute:(initialRoute == nil ? @"/" : initialRoute)];
     FlutterViewController *flutterViewController = [[FlutterViewController alloc] initWithEngine:flutterEngine nibName:nil bundle:nil];
     if (transparent) {
@@ -252,6 +258,15 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
         flutterViewController.view.backgroundColor = [UIColor clearColor];
         flutterViewController.modalPresentationStyle = UIModalPresentationCurrentContext;
         [flutterViewController setViewOpaque:false];
+    }
+
+    // [GeneratedPluginRegistrant registerWithRegistry:flutterEngine];
+    Class clazz = NSClassFromString(@"GeneratedPluginRegistrant");
+    if (clazz && [clazz respondsToSelector:NSSelectorFromString(@"registerWithRegistry:")]) {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+        [clazz performSelector:NSSelectorFromString(@"registerWithRegistry:") withObject:flutterEngine];
+#pragma clang diagnostic pop
     }
     return flutterViewController;
 }
