@@ -58,14 +58,19 @@ class MockFlutterAddtoappBridgePlatform with MockPlatformInterfaceMixin implemen
   }
 
   @override
-  Future<void> back({count = 1}) {
-    return Future.value(false);
-  }
+  void back({count = 1}) {}
 
   @override
-  Future<void> showToast(String message) {
-    return Future.value(false);
-  }
+  void showToast(String? message) {}
+
+  @override
+  void openContainer(
+    String? entrypoint, {
+    initialRoute = "/",
+    newEngine = false,
+    destroyEngine = false,
+    transparent = false,
+  }) {}
 }
 
 void main() {

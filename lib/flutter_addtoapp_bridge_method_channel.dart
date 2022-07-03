@@ -63,6 +63,24 @@ class MethodChannelFlutterAddtoappBridge extends FlutterAddtoappBridgePlatform {
   }
 
   @override
+  void openContainer(
+    String? entrypoint, {
+    initialRoute = "/",
+    newEngine = false,
+    destroyEngine = false,
+    transparent = false,
+  }) {
+    if (entrypoint == null || entrypoint.isEmpty) {
+      print("openContainer entrypoint=$entrypoint shouldn't null or empty!");
+      return;
+    }
+    callPlatform("openContainer", [
+      entrypoint,
+      {initialRoute: initialRoute, newEngine: newEngine, destroyEngine: destroyEngine, transparent: transparent}
+    ]);
+  }
+
+  @override
   Future<String?> putString(String key, String value) async {
     return Future.value(await callPlatform("putString", [key, value]));
   }

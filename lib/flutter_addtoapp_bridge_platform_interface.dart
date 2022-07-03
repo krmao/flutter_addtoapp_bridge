@@ -44,8 +44,18 @@ abstract class FlutterAddtoappBridgePlatform extends PlatformInterface {
     throw UnimplementedError('back() has not been implemented.');
   }
 
-  void showToast(String message) {
+  void showToast(String? message) {
     throw UnimplementedError('toast has not been implemented.');
+  }
+
+  void openContainer(
+    String? entrypoint, {
+    initialRoute = "/",
+    newEngine = false,
+    destroyEngine = false,
+    transparent = false,
+  }) {
+    throw UnimplementedError('openContainer has not been implemented.');
   }
 
   Future<String?> putString(String key, String value) {

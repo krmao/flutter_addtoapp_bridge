@@ -19,8 +19,19 @@ class FlutterAddtoappBridge {
     return FlutterAddtoappBridgePlatform.instance.back(count: count);
   }
 
-  static void showToast(String message) {
+  static void showToast(String? message) {
     return FlutterAddtoappBridgePlatform.instance.showToast(message);
+  }
+
+  static void openContainer(
+    String? entrypoint, {
+    initialRoute = "/",
+    newEngine = false,
+    destroyEngine = false,
+    transparent = false,
+  }) {
+    return FlutterAddtoappBridgePlatform.instance.openContainer(entrypoint,
+        initialRoute: initialRoute, newEngine: newEngine, destroyEngine: destroyEngine, transparent: transparent);
   }
 
   static Future<String?> putString(String key, String value) {
