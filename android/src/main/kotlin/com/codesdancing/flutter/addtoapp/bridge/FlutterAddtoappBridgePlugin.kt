@@ -39,7 +39,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     private var currentBindingActivityRef: SoftReference<Activity>? = null
 
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
-        Log.d(TAG, "onAttachedToEngine activityLinkedHashMap=${activityLinkedHashMap.size}")
+        Log.d(TAG, "onAttachedToEngine activityLinkedHashMap=${activityLinkedHashMapString()}")
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_addtoapp_bridge")
         channel?.setMethodCallHandler(this)
 
@@ -65,7 +65,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        Log.d(TAG, "onMethodCall activity=${currentBindingActivityRef?.get()?.toString()}, method=${call.method}, arguments=${call.arguments}, activityLinkedHashMap=${activityLinkedHashMap.size}")
+        Log.d(TAG, "onMethodCall activity=${currentBindingActivityRef?.get()?.toString()}, method=${call.method}, arguments=${call.arguments}, activityLinkedHashMap=${activityLinkedHashMapString()}")
         if (onGlobalMethodCall != null) {
             onGlobalMethodCall?.onCall(currentBindingActivityRef?.get(), call, object : Result {
                 override fun success(_result: Any?) {
@@ -87,10 +87,10 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         val activityRef = SoftReference(binding.activity)
-        this.currentBindingActivityRefKey = binding.activity.toString()
+        this.currentBindingActivityRefKey = binding.activity.hashCode().toString()
         this.currentBindingActivityRef = activityRef
-        activityLinkedHashMap[binding.activity.toString()] = activityRef
-        Log.d(TAG, "onAttachedToActivity activityLinkedHashMap=${activityLinkedHashMap.size}")
+        activityLinkedHashMap[binding.activity.hashCode().toString()] = activityRef
+        Log.d(TAG, "onAttachedToActivity activityLinkedHashMap=${activityLinkedHashMapString()}")
     }
 
     override fun onDetachedFromActivityForConfigChanges() {
@@ -100,15 +100,15 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             this.currentBindingActivityRefKey = null
             this.currentBindingActivityRef = null
         }
-        Log.d(TAG, "onDetachedFromActivityForConfigChanges activityLinkedHashMap=${activityLinkedHashMap.size}")
+        Log.d(TAG, "onDetachedFromActivityForConfigChanges activityLinkedHashMap=${activityLinkedHashMapString()}")
     }
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         val activityRef = SoftReference(binding.activity)
-        this.currentBindingActivityRefKey = binding.activity.toString()
+        this.currentBindingActivityRefKey = binding.activity.hashCode().toString()
         this.currentBindingActivityRef = activityRef
-        activityLinkedHashMap[binding.activity.toString()] = activityRef
-        Log.d(TAG, "onReattachedToActivityForConfigChanges activityLinkedHashMap=${activityLinkedHashMap.size}")
+        activityLinkedHashMap[binding.activity.hashCode().toString()] = activityRef
+        Log.d(TAG, "onReattachedToActivityForConfigChanges activityLinkedHashMap=${activityLinkedHashMapString()}")
     }
 
     override fun onDetachedFromActivity() {
@@ -118,11 +118,11 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             this.currentBindingActivityRefKey = null
             this.currentBindingActivityRef = null
         }
-        Log.d(TAG, "onDetachedFromActivity activityLinkedHashMap=${activityLinkedHashMap.size}")
+        Log.d(TAG, "onDetachedFromActivity activityLinkedHashMap=${activityLinkedHashMapString()}")
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
-        Log.d(TAG, "onDetachedFromEngine activityLinkedHashMap=${activityLinkedHashMap.size}")
+        Log.d(TAG, "onDetachedFromEngine activityLinkedHashMap=${activityLinkedHashMapString()}")
         channel?.setMethodCallHandler(null)
     }
 
@@ -140,7 +140,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         @JvmStatic
         private var onDefaultGlobalMethodCall: OnGlobalMethodCall = object : OnGlobalMethodCall {
             override fun onCall(activity: Activity?, call: MethodCall, result: Result) {
-                Log.d(TAG, "onDefaultGlobalMethodCall activityLinkedHashMap=${activityLinkedHashMap.size}")
+                Log.d(TAG, "onDefaultGlobalMethodCall activityLinkedHashMap=${activityLinkedHashMapString()}")
                 Log.d(TAG, "onDefaultGlobalMethodCall activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
                 if (call.method == "callPlatform") {
                     val argumentsWithFunctionNameArray = call.arguments as? ArrayList<*>
@@ -284,7 +284,6 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                     activityLinkedHashMap[key]?.get()?.finish()
                     activityLinkedHashMap.remove(key)
                 }
-                activityLinkedHashMap.forEach { it.value.get()?.finish() }
             }
         }
 
@@ -293,10 +292,16 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         private var application: Application? = null
         private var flutterEngineGroup: FlutterEngineGroup? = null
         private var activityLinkedHashMap = linkedMapOf<String, SoftReference<Activity>>()
+
+        @JvmStatic
+        fun activityLinkedHashMapString(): String {
+            return "(${activityLinkedHashMap.keys.size}${activityLinkedHashMap.keys})"
+        }
+
         private var activityLifecycleCallbacks: Application.ActivityLifecycleCallbacks? = object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                activityLinkedHashMap[activity.toString()] = SoftReference(activity)
-                Log.d(TAG, "onActivityCreated $activity activityLinkedHashMap=${activityLinkedHashMap.size}")
+                activityLinkedHashMap[activity.hashCode().toString()] = SoftReference(activity)
+                Log.d(TAG, "onActivityCreated $activity activityLinkedHashMap=${activityLinkedHashMapString()}")
             }
 
             override fun onActivityStarted(activity: Activity) {}
@@ -310,8 +315,8 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
 
             override fun onActivityDestroyed(activity: Activity) {
-                activityLinkedHashMap.remove(activity.toString())
-                Log.d(TAG, "onActivityDestroyed $activity activityLinkedHashMap=${activityLinkedHashMap.size}")
+                activityLinkedHashMap.remove(activity.hashCode().toString())
+                Log.d(TAG, "onActivityDestroyed $activity activityLinkedHashMap=${activityLinkedHashMapString()}")
             }
         }
 
@@ -322,7 +327,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         @JvmStatic
         @JvmOverloads
         fun callFlutter(method: String, @Nullable arguments: Any? = null, @Nullable callback: Result? = null): Boolean {
-            Log.d(TAG, "callFlutter activityLinkedHashMap=${activityLinkedHashMap.size}")
+            Log.d(TAG, "callFlutter activityLinkedHashMap=${activityLinkedHashMapString()}")
             val innerMethodChannel = channel
 
             return if (innerMethodChannel != null) {
