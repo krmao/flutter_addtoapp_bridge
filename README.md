@@ -1,8 +1,11 @@
 # [flutter_addtoapp_bridge](https://pub.flutter-io.cn/packages/flutter_addtoapp_bridge)
 
-flutter addtoapp bridge for flutter call android/ios.
+flutter addtoapp bridge and support multi flutter engines.
 
-## both android and ios functions
+## features
+
+### dart
+
 * getPlatformVersion
 * isAddToApp -> check env is default or addtoapp
 * putString
@@ -18,64 +21,62 @@ flutter addtoapp bridge for flutter call android/ios.
 * callPlatform -> return null if MissingPluginException
 * setMethodCallHandler
 
+### android
 
-## Usage(flutter call android/ios)
+* setOnGlobalMethodCall
+* back
+* callFlutter
+* showToast
+* openContainer
+* getPlugin
+* getIntentWithEntrypoint
+* getFragmentWithEntrypoint
+* getEngineWithEntrypoint
 
-> [flutter_addtoapp_bridge/versions](https://pub.flutter-io.cn/packages/flutter_addtoapp_bridge/versions)
+### ios
+
+* setOnGlobalMethodCall
+* topmostViewController
+* showToast
+* getPlugin
+* callFlutter
+* runBlockInMainThread
+* back
+* openContainer
+* getEngineWithEntrypoint
+* registerEnginePlugins
+* getViewControllerWithEntrypoint
+
+## usage
 
 - dart
 
 ```dart
-class _MyAppState extends State<MyApp> {
-  final _flutterAddtoappBridgePlugin = FlutterAddtoappBridge();
+Future<dynamic> methodCallHandler(MethodCall methodCall) async {}
 
-  Future<void> initPlatformState() async {
-    try {
-      dynamic result = await _flutterAddtoappBridgePlugin.open("toast", "Hi, I am from flutter!");
-      if (kDebugMode) {
-        print("putPlatformValue result=$result");
-      }
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-  }
+void main() async {
+  FlutterAddtoappBridge.setMethodCallHandler(methodCallHandler);
+  FlutterAddtoappBridge.showToast("hello world!");
 }
 ```
 
 - ios(objectivec)
 
-> pod install
-
 ```objectivec
 #import <flutter_addtoapp_bridge/FlutterAddtoappBridgePlugin.h>
 
-// write code in application AppDelegate
-[FlutterAddtoappBridgePlugin setOnGlobalMethodCall:^(UIViewController *topmostViewController, FlutterMethodCall *call, FlutterResult result) {
-  NSLog(@"onCall topViewController=%@, method=%@, arguments=%@", topmostViewController, call.method, call.arguments);
-  
-  if([@"callPlatform" isEqualToString:call.method]){
-      NSLog(@"onCall %@" ,[call.arguments class]);
-      NSMutableArray *argumentsWithFunctionNameArray = (NSMutableArray *)call.arguments;
-      NSString *functionName = [argumentsWithFunctionNameArray firstObject];
-      if([@"getPlatformVersion" isEqualToString:functionName]){
-          result([[UIDevice currentDevice] systemVersion]);
-      }else if([@"open" isEqualToString:functionName]){
-          NSMutableArray *argumentsArray = (NSMutableArray *)[argumentsWithFunctionNameArray objectAtIndex:1];
-          NSString *url = [argumentsArray firstObject];
-          NSLog(@"onCall open-> url==%@, arguments=%@", url, [argumentsArray objectAtIndex:1]);
-          if([@"toast" isEqualToString:url]){
-              [FlutterAddtoappBridgePlugin showToast:topmostViewController message:(NSString *)[argumentsArray objectAtIndex:1]];
-              result(@"0");
-          }else{
-               result(FlutterMethodNotImplemented);
-          }
-      }else{
-          result(FlutterMethodNotImplemented);
-      }
-  }else{
-      result(FlutterMethodNotImplemented);
-  }
-}];
+@implementation AppDelegate
+
+- (BOOL) application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary<UIApplicationLaunchOptionsKey, id> *)launchOptions {
+
+    [FlutterAddtoappBridgePlugin setOnGlobalMethodCall:^(UIViewController *topmostViewController, FlutterMethodCall *call, FlutterResult result) {}];
+    
+    // pre warm engine about 'home' page
+    FlutterViewController *homeFlutterViewController =  [FlutterAddtoappBridgePlugin getViewControllerWithEntrypoint:@"home" registerPlugins:true];
+    
+}
+
+@end
 ```
 
 - android(kotlin)
@@ -83,36 +84,21 @@ class _MyAppState extends State<MyApp> {
 ```kotlin
 import com.codesdancing.flutter.addtoapp.bridge.FlutterAddtoappBridgePlugin;
 
-// write code in application
-FlutterAddtoappBridgePlugin.setOnGlobalMethodCall(object : FlutterAddtoappBridgePlugin.OnGlobalMethodCall {
-    override fun onCall(activity: Activity?, call: MethodCall, result: MethodChannel.Result) {
-        Log.d("onCall", "activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
-        if (call.method == "callPlatform") {
-            val argumentsWithFunctionNameArray = call.arguments as? ArrayList<*>
-            when (val functionName = argumentsWithFunctionNameArray?.first()) {
-                "getPlatformVersion" ->{
-                    result.success(android.os.Build.VERSION.RELEASE)
-                }
-                "open" -> {
-                    val argumentsArray = argumentsWithFunctionNameArray.getOrNull(1) as? ArrayList<*>
-                    Log.d("onCall", "open-> url=${argumentsArray?.getOrNull(0)}, arguments=${argumentsArray?.getOrNull(1) as? String ?: ""}}")
-                    when (val url = argumentsArray?.getOrNull(0)) {
-                        "toast" -> {
-                            FlutterAddtoappBridgePlugin.showToast(activity, argumentsArray.getOrNull(1) as? String ?: "")
-                            result.success("0")
-                        }
-                        else -> {
-                            result.notImplemented()
-                        }
-                    }
-                }
-                else ->{
-                    result.notImplemented()
-                }
+class FinalApplication : Application() {
+
+    override fun onCreate() {
+        super.onCreate()
+
+        FlutterAddtoappBridgePlugin.setOnGlobalMethodCall(this, object : FlutterAddtoappBridgePlugin.OnGlobalMethodCall {
+            override fun onCall(activity: Activity?, call: MethodCall, result: MethodChannel.Result) {
             }
-        } else {
-            result.notImplemented()
-        }
+        })
+
+        // pre warm engine about 'home' page
+        FlutterAddtoappBridgePlugin.getEngineWithEntrypoint(this, "home")
+
     }
-})
+
+}
+
 ```

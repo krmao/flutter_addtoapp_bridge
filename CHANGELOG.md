@@ -66,3 +66,7 @@
 * exitApp
 * showToast
 * back
+* 
+## 1.0.0
+
+* suppor multi engines
