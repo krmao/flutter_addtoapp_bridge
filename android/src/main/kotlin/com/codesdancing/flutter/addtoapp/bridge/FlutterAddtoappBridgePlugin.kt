@@ -16,6 +16,9 @@ import androidx.annotation.UiThread
 import io.flutter.FlutterInjector
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.android.FlutterActivityLaunchConfigs
+import io.flutter.embedding.android.FlutterFragment
+import io.flutter.embedding.android.RenderMode
+import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterEngineCache
 import io.flutter.embedding.engine.FlutterEngineGroup
 import io.flutter.embedding.engine.dart.DartExecutor.DartEntrypoint
@@ -35,6 +38,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
+    var channel: MethodChannel? = null
     private var currentBindingActivityRefKey: String? = null
     private var currentBindingActivityRef: SoftReference<Activity>? = null
 
@@ -43,29 +47,34 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_addtoapp_bridge")
         channel?.setMethodCallHandler(this)
 
-        var context = flutterPluginBinding.applicationContext
-        var lastContext: Context? = null
-        while (context != lastContext) {
-            Log.d(TAG, "onAttachedToEngine trying to resolve Application from Context: ${context.javaClass.name}")
-            lastContext = context
+        if (application == null) {
+            var context = flutterPluginBinding.applicationContext
+            var lastContext: Context? = null
+            while (context != lastContext) {
+                Log.d(TAG, "onAttachedToEngine trying to resolve Application from Context: ${context.javaClass.name}")
+                lastContext = context
 
-            val tmpApplication = context as? Application
+                val tmpApplication = context as? Application
+                if (tmpApplication != null) {
+                    application = tmpApplication
+                    break
+                } else {
+                    context = context.applicationContext
+                }
+            }
+            Log.w(TAG, "onAttachedToEngine ${if (application == null) "failure" else "success"} to resolve Application from Context")
+
+            val tmpApplication = application
             if (tmpApplication != null) {
-                application = tmpApplication
-                flutterEngineGroup = FlutterEngineGroup(tmpApplication)
-                break
-            } else {
-                context = context.applicationContext
+                if (flutterEngineGroup == null) flutterEngineGroup = FlutterEngineGroup(tmpApplication)
+                tmpApplication.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+                tmpApplication.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
             }
         }
-        Log.w(TAG, "onAttachedToEngine ${if (application == null) "failure" else "success"} to resolve Application from Context")
-
-        application?.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
-        application?.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
     }
 
     override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: Result) {
-        Log.d(TAG, "onMethodCall activity=${currentBindingActivityRef?.get()?.toString()}, method=${call.method}, arguments=${call.arguments}, activityLinkedHashMap=${activityLinkedHashMapString()}")
+        Log.d(TAG, "onMethodCall [android] activity=${currentBindingActivityRef?.get()?.toString()}, method=${call.method}, arguments=${call.arguments}, activityLinkedHashMap=${activityLinkedHashMapString()}")
         if (onGlobalMethodCall != null) {
             onGlobalMethodCall?.onCall(currentBindingActivityRef?.get(), call, object : Result {
                 override fun success(_result: Any?) {
@@ -140,8 +149,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         @JvmStatic
         private var onDefaultGlobalMethodCall: OnGlobalMethodCall = object : OnGlobalMethodCall {
             override fun onCall(activity: Activity?, call: MethodCall, result: Result) {
-                Log.d(TAG, "onDefaultGlobalMethodCall activityLinkedHashMap=${activityLinkedHashMapString()}")
-                Log.d(TAG, "onDefaultGlobalMethodCall activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments}")
+                Log.d(TAG, "onMethodCall [android] [default] activity=${activity?.hashCode()}, method=${call.method}, arguments=${call.arguments} activityLinkedHashMap=${activityLinkedHashMapString()}")
                 if (call.method == "callPlatform") {
                     val argumentsWithFunctionNameArray = call.arguments as? ArrayList<*>
                     when (argumentsWithFunctionNameArray?.first()) {
@@ -263,8 +271,12 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         }
 
         @JvmStatic
-        fun setOnGlobalMethodCall(onGlobalMethodCall: OnGlobalMethodCall?) {
+        fun setOnGlobalMethodCall(application: Application, onGlobalMethodCall: OnGlobalMethodCall?) {
+            this.application = application
             this.onGlobalMethodCall = onGlobalMethodCall
+            if (flutterEngineGroup == null) flutterEngineGroup = FlutterEngineGroup(application)
+            application.unregisterActivityLifecycleCallbacks(activityLifecycleCallbacks)
+            application.registerActivityLifecycleCallbacks(activityLifecycleCallbacks)
         }
 
         @JvmStatic
@@ -287,11 +299,9 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             }
         }
 
-        private var channel: MethodChannel? = null
-
         private var application: Application? = null
         private var flutterEngineGroup: FlutterEngineGroup? = null
-        private var activityLinkedHashMap = linkedMapOf<String, SoftReference<Activity>>()
+        private val activityLinkedHashMap = linkedMapOf<String, SoftReference<Activity>>()
 
         @JvmStatic
         fun activityLinkedHashMapString(): String {
@@ -326,10 +336,10 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         @UiThread
         @JvmStatic
         @JvmOverloads
-        fun callFlutter(method: String, @Nullable arguments: Any? = null, @Nullable callback: Result? = null): Boolean {
+        fun callFlutter(engine: FlutterEngine?, method: String, @Nullable arguments: Any? = null, @Nullable callback: Result? = null): Boolean {
             Log.d(TAG, "callFlutter activityLinkedHashMap=${activityLinkedHashMapString()}")
-            val innerMethodChannel = channel
-
+            val bridgePlugin: FlutterAddtoappBridgePlugin? = getPlugin(engine)
+            val innerMethodChannel = bridgePlugin?.channel
             return if (innerMethodChannel != null) {
                 innerMethodChannel.invokeMethod(method, arguments, callback)
                 true
@@ -358,6 +368,11 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
             }
         }
 
+        @JvmStatic
+        fun getPlugin(engine: FlutterEngine?): FlutterAddtoappBridgePlugin? {
+            return engine?.plugins?.get(FlutterAddtoappBridgePlugin::class.java) as? FlutterAddtoappBridgePlugin
+        }
+
         /**
          * https://flutter.cn/docs/development/add-to-app/android/add-flutter-screen
          */
@@ -366,20 +381,73 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
         fun getIntentWithEntrypoint(
             context: Context?, entrypoint: String? = "main", initialRoute: String = "/", destroyEngine: Boolean = false, transparent: Boolean = false
         ): Intent? {
-            val tmpFlutterEngineGroup = flutterEngineGroup
-            if (context == null || (context is Activity && context.isFinishing) || tmpFlutterEngineGroup == null || entrypoint == null) {
+            if (context == null || entrypoint == null) {
+                Log.d(TAG, "getIntentWithEntrypoint params error -> context($context) == null || entrypoint($entrypoint) == null")
                 return null
             }
-            val cachedEngine = FlutterEngineCache.getInstance().get(entrypoint)
-            val dartEntrypoint = DartEntrypoint(FlutterInjector.instance().flutterLoader().findAppBundlePath(), entrypoint)
-            if (cachedEngine == null) {
-                val flutterEngine = tmpFlutterEngineGroup.createAndRunEngine(context, dartEntrypoint, initialRoute)
-                FlutterEngineCache.getInstance().put(entrypoint, flutterEngine)
+            if (flutterEngineGroup == null) flutterEngineGroup = FlutterEngineGroup(context)
+            if ((context is Activity && context.isFinishing)) {
+                Log.d(TAG, "getIntentWithEntrypoint params error -> context.isFinishing")
+                return null
             }
-            return FlutterActivity.CachedEngineIntentBuilder(FlutterActivity::class.java, entrypoint)
+            getEngineWithEntrypoint(context, entrypoint, initialRoute)
+            val intent: Intent = FlutterActivity.CachedEngineIntentBuilder(FlutterActivity::class.java, entrypoint)
                 .backgroundMode(if (transparent) FlutterActivityLaunchConfigs.BackgroundMode.transparent else FlutterActivityLaunchConfigs.BackgroundMode.opaque)
                 .destroyEngineWithActivity(destroyEngine)
                 .build(context)
+            Log.d(TAG, "getIntentWithEntrypoint intent=$intent")
+            return intent
+        }
+
+        /**
+         * https://flutter.cn/docs/development/add-to-app/android/add-flutter-screen
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun getFragmentWithEntrypoint(
+            context: Context?, entrypoint: String? = "main", initialRoute: String = "/", shouldAttachEngineToActivity: Boolean = true, renderMode: RenderMode = RenderMode.texture
+        ): FlutterFragment? {
+            if (context == null || entrypoint == null) {
+                Log.d(TAG, "getFragmentWithEntrypoint params error -> context($context) == null || entrypoint($entrypoint) == null")
+                return null
+            }
+            if (flutterEngineGroup == null) flutterEngineGroup = FlutterEngineGroup(context)
+            if ((context is Activity && context.isFinishing)) {
+                Log.d(TAG, "getFragmentWithEntrypoint params error -> context.isFinishing")
+                return null
+            }
+            getEngineWithEntrypoint(context, entrypoint, initialRoute)
+            val fragment: FlutterFragment = FlutterFragment.CachedEngineFragmentBuilder(FlutterFragment::class.java, entrypoint)
+                .shouldAttachEngineToActivity(shouldAttachEngineToActivity).renderMode(renderMode).build()
+            Log.d(TAG, "getFragmentWithEntrypoint fragment=$fragment")
+            return fragment
+        }
+
+        /**
+         * https://flutter.cn/docs/development/add-to-app/android/add-flutter-screen
+         */
+        @JvmStatic
+        @JvmOverloads
+        fun getEngineWithEntrypoint(context: Context?, entrypoint: String? = "main", initialRoute: String = "/"): FlutterEngine? {
+            if (context == null || entrypoint == null) {
+                Log.d(TAG, "getEngineWithEntrypoint params error -> context($context) == null || entrypoint($entrypoint) == null")
+                return null
+            }
+            if (flutterEngineGroup == null) flutterEngineGroup = FlutterEngineGroup(context)
+            if ((context is Activity && context.isFinishing)) {
+                Log.d(TAG, "getEngineWithEntrypoint params error -> context.isFinishing")
+                return null
+            }
+
+            var cachedEngine = FlutterEngineCache.getInstance().get(entrypoint)
+            if (cachedEngine == null) {
+                val dartEntrypoint = DartEntrypoint(FlutterInjector.instance().flutterLoader().findAppBundlePath(), entrypoint)
+                val flutterEngine = flutterEngineGroup?.createAndRunEngine(context, dartEntrypoint, initialRoute)
+                FlutterEngineCache.getInstance().put(entrypoint, flutterEngine)
+                cachedEngine = FlutterEngineCache.getInstance().get(entrypoint)
+            }
+            Log.d(TAG, "getEngineWithEntrypoint cachedEngine=$cachedEngine")
+            return cachedEngine
         }
     }
 }

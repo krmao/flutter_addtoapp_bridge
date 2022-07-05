@@ -1,17 +1,15 @@
 #import "FlutterAddtoappBridgePlugin.h"
 
 #pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
 #pragma ide diagnostic ignored "OCUnusedMethodInspection"
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 
-
 static FlutterEngineGroup *flutterEngineGroup = nil;
-static FlutterMethodChannel *channel = nil;
 static OnGlobalMethodCall onGlobalMethodCall = nil;
 static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nullable topViewController, FlutterMethodCall *_Nonnull call, FlutterResult _Nonnull result) {
-    NSLog(@"--> onDefaultGlobalMethodCall (oc) topViewController=%@, method=%@, arguments=%@", topViewController, call.method, call.arguments);
+    NSLog(@"[FlutterAddtoappBridgePlugin] onDefaultGlobalMethodCall (ios) topViewController=%@, method=%@, arguments=%@", topViewController, call.method, call.arguments);
     if ([@"callPlatform" isEqualToString:call.method]) {
-        NSLog(@"onCall %@", [call.arguments class]);
         NSMutableArray *argumentsWithFunctionNameArray = (NSMutableArray *) call.arguments;
         NSString *functionName = [argumentsWithFunctionNameArray firstObject];
         if ([@"getPlatformVersion" isEqualToString:functionName]) {
@@ -89,9 +87,9 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             NSString *entrypoint = argumentsArray[0];
             NSDictionary *argumentsMap = (NSDictionary *) argumentsArray[1];
             NSString *initialRoute = (NSString *) [argumentsMap valueForKey:@"initialRoute"];
-            BOOL destroyEngine =  [[argumentsMap valueForKey:@"destroyEngine"] boolValue];
-            BOOL transparent =  [[argumentsMap valueForKey:@"transparent"] boolValue];
-            [FlutterAddtoappBridgePlugin openContainer:topViewController entryPoint:entrypoint initialRoute:initialRoute destroyEngine:destroyEngine transparent:transparent];
+            BOOL destroyEngine = [[argumentsMap valueForKey:@"destroyEngine"] boolValue];
+            BOOL transparent = [[argumentsMap valueForKey:@"transparent"] boolValue];
+            [FlutterAddtoappBridgePlugin openContainer:topViewController entryPoint:entrypoint initialRoute:initialRoute registerPlugins:true transparent:transparent];
             result(@(YES));
         } else {
             result(FlutterMethodNotImplemented);
@@ -103,7 +101,16 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
 
 @implementation FlutterAddtoappBridgePlugin
 
+- (instancetype)initWithChannel:(FlutterMethodChannel *_Nonnull)channel {
+    NSLog(@"[FlutterAddtoappBridgePlugin] initWithChannel");
+    if (self = [super init]) {
+        _channel = channel;
+    }
+    return self;
+}
+
 + (void)runBlockInMainThread:(dispatch_block_t _Nonnull)block {
+    NSLog(@"[FlutterAddtoappBridgePlugin] runBlockInMainThread");
     if (block == nil) {
         return;
     }
@@ -115,7 +122,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
 }
 
 + (void)back:(UIViewController *_Nullable)currentViewController count:(NSInteger)count {
-    NSLog(@"--> back currentViewController=%@ count=%ld", currentViewController, count);
+    NSLog(@"[FlutterAddtoappBridgePlugin] back currentViewController=%@ count=%ld", currentViewController, count);
     if (!currentViewController || (count <= 0 && count != -1)) {
         return;
     }
@@ -157,19 +164,27 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
 }
 
 + (void)registerWithRegistrar:(NSObject <FlutterPluginRegistrar> *)registrar {
-    channel = [FlutterMethodChannel
-            methodChannelWithName:@"flutter_addtoapp_bridge"
-                  binaryMessenger:[registrar messenger]];
-    FlutterAddtoappBridgePlugin *instance = [[FlutterAddtoappBridgePlugin alloc] init];
-    flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
-    [registrar addMethodCallDelegate:instance channel:channel];
+    if(flutterEngineGroup==nil){
+        flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
+    }
+    FlutterMethodChannel *channel = [FlutterMethodChannel methodChannelWithName:@"flutter_addtoapp_bridge" binaryMessenger:[registrar messenger]];
+    FlutterAddtoappBridgePlugin *bridgePlugin = [[FlutterAddtoappBridgePlugin alloc] initWithChannel:channel];
+    [registrar addMethodCallDelegate:bridgePlugin channel:channel];
+    [registrar publish:bridgePlugin];
+    
+    NSLog(@"[FlutterAddtoappBridgePlugin] registerWithRegistrar bridgePlugin=%@ plugin.channel=%@ registrar=%@",bridgePlugin,channel,registrar);
 }
 
 + (void)setOnGlobalMethodCall:(OnGlobalMethodCall _Nullable)onCall {
+    NSLog(@"[FlutterAddtoappBridgePlugin] setOnGlobalMethodCall");
     onGlobalMethodCall = onCall;
+    
+    
+    if(flutterEngineGroup==nil) flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
 }
 
 + (UIViewController *_Nullable)topmostViewController {
+    NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController start");
     // NOTE: Adapted from various stray answers here:
     // https://stackoverflow.com/questions/6131205/iphone-how-to-find-topmost-view-controller/20515681
     UIViewController *viewController = nil;
@@ -179,35 +194,62 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             break;
         }
     }
+    NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController viewController=%@",viewController);
     while (viewController != nil) {
         if ([viewController isKindOfClass:[UITabBarController class]]) {
             viewController = ((UITabBarController *) viewController).selectedViewController;
+            NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController UITabBarController viewController=%@",viewController);
         } else if ([viewController isKindOfClass:[UINavigationController class]]) {
             viewController = ((UINavigationController *) viewController).visibleViewController;
         } else if (viewController.presentedViewController != nil && !viewController.presentedViewController.isBeingDismissed) {
             viewController = viewController.presentedViewController;
+            NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController presentedViewController viewController=%@",viewController);
         } else if (viewController.childViewControllers.count > 0) {
             viewController = viewController.childViewControllers.lastObject;
+            NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController childViewControllers viewController=%@",viewController);
         } else {
             BOOL repeat = NO;
             for (UIView *view in viewController.view.subviews.reverseObjectEnumerator.allObjects) {
                 if ([view.nextResponder isKindOfClass:[UIViewController class]]) {
                     viewController = (UIViewController *) view.nextResponder;
                     repeat = YES;
+                    NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController repeat=YES");
                     break;
                 }
             }
             if (!repeat) {
+                NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController repeat=NO break");
                 break;
             }
         }
     }
+    NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController end viewController=%@",viewController);
     return viewController;
 }
 
-+ (Boolean)callFlutter:(NSString *_Nonnull)method arguments:(id _Nullable)arguments callback:(FlutterResult _Nullable)callback {
-    if (channel != nil) {
-        [channel invokeMethod:method arguments:arguments result:callback];
++ (FlutterAddtoappBridgePlugin *_Nullable)getPlugin:(FlutterEngine *_Nullable)engine {
+    NSLog(@"[FlutterAddtoappBridgePlugin] getPlugin");
+    if (engine != nil) {
+        BOOL hasPlugin = [engine hasPlugin:@"FlutterAddtoappBridgePlugin"];
+        NSObject *published = [engine valuePublishedByPlugin:@"FlutterAddtoappBridgePlugin"];
+        NSLog(@"[FlutterAddtoappBridgePlugin] getPlugin hasPlugin=%d, engine=%@, published=%@", hasPlugin, engine, published);
+        if ([published isKindOfClass:[FlutterAddtoappBridgePlugin class]]) {
+            FlutterAddtoappBridgePlugin *plugin = (FlutterAddtoappBridgePlugin *) published;
+            NSLog(@"[FlutterAddtoappBridgePlugin] getPlugin return plugin=%@", plugin);
+            return plugin;
+        }
+        NSLog(@"[FlutterAddtoappBridgePlugin] getPlugin return plugin nil !");
+    }
+    return nil;
+}
+
++ (Boolean)callFlutter:(FlutterEngine *_Nullable)engine method:(NSString *_Nonnull)method arguments:(id _Nullable)arguments callback:(FlutterResult _Nullable)callback {
+    FlutterAddtoappBridgePlugin *plugin = [FlutterAddtoappBridgePlugin getPlugin:engine];
+    NSLog(@"[FlutterAddtoappBridgePlugin] callFlutter plugin=%@",plugin);
+    
+    if (plugin != nil && plugin.channel != nil) {
+        NSLog(@"[FlutterAddtoappBridgePlugin] callFlutter invokeMethod plugin.channel=%@ method=%@ arguments=%@ callback=%@",plugin.channel,method,arguments,callback);
+        [plugin.channel invokeMethod:method arguments:arguments result:callback];
         return true;
     } else {
         return false;
@@ -215,12 +257,10 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
 }
 
 + (void)showToast:(UIViewController *_Nullable)viewController message:(NSString *_Nonnull)message {
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "IncompatibleTypes"
+    NSLog(@"[FlutterAddtoappBridgePlugin] showToast");
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil
                                                                    message:@""
                                                             preferredStyle:UIAlertControllerStyleAlert];
-#pragma clang diagnostic pop
     UIView *firstSubview = alert.view.subviews.firstObject;
     UIView *alertContentView = firstSubview.subviews.firstObject;
     for (UIView *subSubView in alertContentView.subviews) {
@@ -228,10 +268,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
     }
     NSMutableAttributedString *AS = [[NSMutableAttributedString alloc] initWithString:message];
     [AS addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:NSMakeRange(0, AS.length)];
-#pragma clang diagnostic push
-#pragma ide diagnostic ignored "KeyValueCodingInspection"
     [alert setValue:AS forKey:@"attributedTitle"];
-#pragma clang diagnostic pop
     [viewController presentViewController:alert animated:YES completion:nil];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [alert dismissViewControllerAnimated:YES completion:^{
@@ -239,9 +276,18 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
     });
 }
 
-+ (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(BOOL)destroyEngine transparent:(BOOL)transparent {
++ (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint{
+    [FlutterAddtoappBridgePlugin openContainer:viewController entryPoint:entryPoint initialRoute:@"/" registerPlugins:true transparent:false];
+}
+
++ (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint registerPlugins:(BOOL)registerPlugins{
+    [FlutterAddtoappBridgePlugin openContainer:viewController entryPoint:entryPoint initialRoute:@"/" registerPlugins:registerPlugins transparent:false];
+}
+
++ (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute registerPlugins:(BOOL)registerPlugins transparent:(BOOL)transparent {
+    NSLog(@"[FlutterAddtoappBridgePlugin] openContainer");
     if (viewController) {
-        FlutterViewController *flutterViewController = [FlutterAddtoappBridgePlugin getViewControllerWithEntrypoint:entryPoint initialRoute:initialRoute destroyEngine:destroyEngine transparent:transparent];
+        FlutterViewController *flutterViewController = [FlutterAddtoappBridgePlugin getViewControllerWithEntrypoint:entryPoint initialRoute:initialRoute registerPlugins:registerPlugins transparent:transparent];
         if (viewController.navigationController && !transparent) {
             [viewController.navigationController pushViewController:flutterViewController animated:true];
         } else {
@@ -250,30 +296,86 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
     }
 }
 
-+ (FlutterViewController *_Nullable)getViewControllerWithEntrypoint:(NSString *_Nullable)entryPoint initialRoute:(NSString *_Nullable)initialRoute destroyEngine:(__attribute__((unused)) BOOL)destroyEngine transparent:(BOOL)transparent {
-    FlutterEngine *flutterEngine = [flutterEngineGroup makeEngineWithEntrypoint:(entryPoint == nil ? @"main" : entryPoint) libraryURI:nil initialRoute:(initialRoute == nil ? @"/" : initialRoute)];
++ (FlutterEngine *_Nonnull)getEngineWithEntrypoint:(NSString *_Nonnull)entrypoint {
+    return [FlutterAddtoappBridgePlugin getEngineWithEntrypoint:entrypoint initialRoute:@"/" registerPlugins:true];
+}
+
+
++ (FlutterEngine *_Nonnull)getEngineWithEntrypoint:(NSString *_Nonnull)entrypoint registerPlugins:(BOOL)registerPlugins{
+    return [FlutterAddtoappBridgePlugin getEngineWithEntrypoint:entrypoint initialRoute:@"/" registerPlugins:registerPlugins];
+}
+
++ (FlutterEngine *_Nonnull)getEngineWithEntrypoint:(NSString *_Nonnull)entrypoint initialRoute:(NSString *_Nonnull)initialRoute {
+    return [FlutterAddtoappBridgePlugin getEngineWithEntrypoint:entrypoint initialRoute:initialRoute registerPlugins:true];
+}
+
++ (FlutterEngine *_Nonnull)getEngineWithEntrypoint:(NSString *_Nonnull)entrypoint initialRoute:(NSString *_Nonnull)initialRoute registerPlugins:(BOOL)registerPlugins {
+    
+    if(flutterEngineGroup==nil) flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
+    NSCAssert(flutterEngineGroup != nil, @"flutterEngineGroup must not be nil");
+       
+    FlutterEngine *flutterEngine = [flutterEngineGroup makeEngineWithEntrypoint:entrypoint libraryURI:nil initialRoute:initialRoute];
+    NSCAssert(flutterEngine != nil, @"flutterEngine must not be nil");
+       
+    NSLog(@"[FlutterAddtoappBridgePlugin] getEngineWithEntrypoint start flutterEngine=%@", flutterEngine);
+    
+    if(registerPlugins){
+        [FlutterAddtoappBridgePlugin registerEnginePlugins:flutterEngine];
+    }
+    NSLog(@"[FlutterAddtoappBridgePlugin] getEngineWithEntrypoint end");
+    return flutterEngine;
+}
+
++ (void)registerEnginePlugins:(FlutterEngine * _Nullable)flutterEngine{
+    NSLog(@"[FlutterAddtoappBridgePlugin] registerEnginePlugins start");
+    if(flutterEngine != nil){
+        Class clazz = NSClassFromString(@"GeneratedPluginRegistrant");
+        if (clazz && [clazz respondsToSelector:NSSelectorFromString(@"registerWithRegistry:")]) {
+            [clazz performSelector:NSSelectorFromString(@"registerWithRegistry:") withObject:flutterEngine];
+            NSLog(@"[FlutterAddtoappBridgePlugin] registerEnginePlugins success clazz=%@", clazz);
+        }else{
+            NSLog(@"[FlutterAddtoappBridgePlugin] registerEnginePlugins failure clazz=%@", clazz);
+        }
+    }
+    NSLog(@"[FlutterAddtoappBridgePlugin] registerEnginePlugins end");
+}
+
++ (FlutterViewController *_Nonnull)getViewControllerWithEntrypoint:(NSString *_Nonnull)entrypoint{
+    return [FlutterAddtoappBridgePlugin getViewControllerWithEntrypoint:entrypoint initialRoute:@"/" registerPlugins:true transparent:false];
+}
+
++ (FlutterViewController *_Nonnull)getViewControllerWithEntrypoint:(NSString *_Nonnull)entrypoint registerPlugins:(BOOL)registerPlugins{
+   return [FlutterAddtoappBridgePlugin getViewControllerWithEntrypoint:entrypoint initialRoute:@"/" registerPlugins:registerPlugins transparent:false];
+}
+
++ (FlutterViewController *_Nonnull)getViewControllerWithEntrypoint:(NSString *_Nonnull)entrypoint initialRoute:(NSString *_Nonnull)initialRoute registerPlugins:(BOOL)registerPlugins transparent:(BOOL)transparent {
+    
+    if(flutterEngineGroup==nil) flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
+    NSCAssert(flutterEngineGroup != nil, @"flutterEngineGroup must not be nil");
+       
+    NSLog(@"[FlutterAddtoappBridgePlugin] getViewControllerWithEntrypoint start");
+    
+    FlutterEngine *flutterEngine = [FlutterAddtoappBridgePlugin getEngineWithEntrypoint:entrypoint initialRoute:initialRoute registerPlugins:registerPlugins];
+    NSCAssert(flutterEngine != nil, @"flutterEngine must not be nil");
+
     FlutterViewController *flutterViewController = [[FlutterViewController alloc] initWithEngine:flutterEngine nibName:nil bundle:nil];
+    
     if (transparent) {
+        NSLog(@"[FlutterAddtoappBridgePlugin] getViewControllerWithEntrypoint transparent start");
         flutterViewController.definesPresentationContext = YES;
         flutterViewController.view.backgroundColor = [UIColor clearColor];
         flutterViewController.modalPresentationStyle = UIModalPresentationCurrentContext;
         [flutterViewController setViewOpaque:false];
+        NSLog(@"[FlutterAddtoappBridgePlugin] getViewControllerWithEntrypoint transparent end");
     }
-
-    // [GeneratedPluginRegistrant registerWithRegistry:flutterEngine];
-    Class clazz = NSClassFromString(@"GeneratedPluginRegistrant");
-    if (clazz && [clazz respondsToSelector:NSSelectorFromString(@"registerWithRegistry:")]) {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Warc-performSelector-leaks"
-        [clazz performSelector:NSSelectorFromString(@"registerWithRegistry:") withObject:flutterEngine];
-#pragma clang diagnostic pop
-    }
+    
+    NSLog(@"[FlutterAddtoappBridgePlugin] getViewControllerWithEntrypoint end flutterEngine=%@， flutterViewController=%@",flutterEngine, flutterViewController);
     return flutterViewController;
 }
 
 - (void)handleMethodCall:(FlutterMethodCall *)call result:(FlutterResult)result {
     UIViewController *topmostViewController = [FlutterAddtoappBridgePlugin topmostViewController];
-    NSLog(@"handleMethodCall topViewController=%@, method=%@, arguments=%@", topmostViewController, call.method, call.arguments);
+    NSLog(@"[FlutterAddtoappBridgePlugin] handleMethodCall [ios] topViewController=%@, method=%@, arguments=%@", topmostViewController, call.method, call.arguments);
 
     if (onGlobalMethodCall != nil) {
         onGlobalMethodCall(topmostViewController, call, ^(id _Nullable _result) {
