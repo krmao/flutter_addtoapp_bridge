@@ -75,7 +75,11 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
         } else if ([@"back" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             int count = [argumentsArray[0] intValue];
-            [FlutterAddtoappBridgePlugin back:topViewController count:count];
+            
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                [FlutterAddtoappBridgePlugin back:topViewController count:count];
+            });
+//            [FlutterAddtoappBridgePlugin back:topViewController count:count];
             result(@(YES));
         } else if ([@"showToast" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
@@ -122,40 +126,72 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
 }
 
 + (void)back:(UIViewController *_Nullable)currentViewController count:(NSInteger)count {
-    NSLog(@"[FlutterAddtoappBridgePlugin] back currentViewController=%@ count=%ld", currentViewController, count);
+    NSLog(@"[FlutterAddtoappBridgePlugin] back start currentViewController=%@ count=%ld", currentViewController, count);
     if (!currentViewController || (count <= 0 && count != -1)) {
         return;
     }
     BOOL animated = YES;
     [FlutterAddtoappBridgePlugin runBlockInMainThread:^{
         NSUInteger finalCount = (NSUInteger) count;
-        if (currentViewController.navigationController) {
+        UINavigationController *navigationController = currentViewController.navigationController;
+        if (navigationController) {
             if (count == -1) {
-                [currentViewController.navigationController popToRootViewControllerAnimated:animated];
+                NSLog(@"back popToRootViewControllerAnimated viewController=%@ navigationController=%@",currentViewController,navigationController);
+                [navigationController popToRootViewControllerAnimated:animated];
             } else {
-                NSUInteger allCount = currentViewController.navigationController.viewControllers.count;
+                NSUInteger allCount = navigationController.viewControllers.count;
                 if (allCount == 1) {
-                    exit(0);
+                    if(navigationController.presentingViewController != nil){
+                        NSLog(@"back isBeingPresented=true dismissViewControllerAnimated viewController=%@ navigationController=%@",currentViewController,navigationController);
+                        
+                        // [navigationController dismissViewControllerAnimated:YES completion:nil]; // not work
+                        [currentViewController dismissViewControllerAnimated:YES completion:nil];
+                    }else{
+                        NSLog(@"back exit currentViewController=%@",currentViewController);
+                        exit(0);
+                    }
                 } else {
                     if (finalCount > allCount) {
                         finalCount = 1;
                     }
-                    UIViewController *toVC = currentViewController.navigationController.viewControllers[(allCount - finalCount - 1)];
-                    [currentViewController.navigationController popToViewController:toVC animated:animated];
+                    NSLog(@"back popToViewController currentViewController=%@",currentViewController);
+                    UIViewController *toVC = navigationController.viewControllers[(allCount - finalCount - 1)];
+                    [navigationController popToViewController:toVC animated:animated];
                 }
             }
         } else {
             UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
             if (rootViewController == currentViewController) {
+                NSLog(@"back rootViewController != currentViewController exit currentViewController=%@",currentViewController);
                 exit(0);
             } else {
                 if (count == -1) {
+                    NSLog(@"back rootViewController != currentViewController count == -1 currentViewController=%@",currentViewController);
                     if (rootViewController.navigationController) {
                         [rootViewController.navigationController popToRootViewControllerAnimated:true];
                     } else {
                         [[UIApplication sharedApplication].keyWindow.rootViewController dismissViewControllerAnimated:true completion:nil];
                     };
                 } else {
+                    NSLog(@"back rootViewController != currentViewController count != -1 currentViewController=%@",currentViewController);
+                    NSLog(@"back rootViewController != currentViewController count != -1 if UIAlertController check is call showToast");
+                    
+                    if ([currentViewController isKindOfClass:[UIAlertController class]]){
+                        NSInteger tag = currentViewController.view.tag;
+                        NSLog(@"back rootViewController != currentViewController count != -1 if UIAlertController check is call showToast tag=%ld",tag);
+                        UIAlertController *alertController = ((UIAlertController *) currentViewController);
+                        UIViewController *presentingViewController=alertController.presentingViewController;
+        
+                        if([presentingViewController isKindOfClass:[UINavigationController class]]){
+                            UIViewController *lastViewController = ((UINavigationController *)presentingViewController).viewControllers.lastObject;
+                            NSLog(@"back UIAlertController UINavigationController lastViewController",lastViewController);
+                            [FlutterAddtoappBridgePlugin back:lastViewController count:count];
+                        }else{
+                            NSLog(@"back UIAlertController UIViewController", presentingViewController);
+                            [FlutterAddtoappBridgePlugin back:presentingViewController count:count];
+                        }
+                        return;
+                    }
                     [currentViewController dismissViewControllerAnimated:YES completion:nil];
                 }
             }
@@ -207,6 +243,16 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
         } else if (viewController.childViewControllers.count > 0) {
             viewController = viewController.childViewControllers.lastObject;
             NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController childViewControllers viewController=%@",viewController);
+        } else if ([viewController isKindOfClass:[UIAlertController class]]){
+            UIAlertController *alertController = ((UIAlertController *) viewController);
+            UIViewController *presentingViewController=alertController.presentingViewController;
+            if([presentingViewController isKindOfClass:[UINavigationController class]]){
+                viewController = ((UINavigationController *)presentingViewController).viewControllers.lastObject;
+                NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController UIAlertController UINavigationController viewController=%@",viewController);
+            }else{
+                viewController =presentingViewController;
+                NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController UIAlertController viewController=%@",viewController);
+            }
         } else {
             BOOL repeat = NO;
             for (UIView *view in viewController.view.subviews.reverseObjectEnumerator.allObjects) {
@@ -257,7 +303,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
 }
 
 + (void)showToast:(UIViewController *_Nullable)viewController message:(NSString *_Nonnull)message {
-    NSLog(@"[FlutterAddtoappBridgePlugin] showToast");
+    NSLog(@"[FlutterAddtoappBridgePlugin] showToast viewController=%@",viewController);
     UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil
                                                                    message:@""
                                                             preferredStyle:UIAlertControllerStyleAlert];
