@@ -237,12 +237,6 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController UITabBarController viewController=%@",viewController);
         } else if ([viewController isKindOfClass:[UINavigationController class]]) {
             viewController = ((UINavigationController *) viewController).visibleViewController;
-        } else if (viewController.presentedViewController != nil && !viewController.presentedViewController.isBeingDismissed) {
-            viewController = viewController.presentedViewController;
-            NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController presentedViewController viewController=%@",viewController);
-        } else if (viewController.childViewControllers.count > 0) {
-            viewController = viewController.childViewControllers.lastObject;
-            NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController childViewControllers viewController=%@",viewController);
         } else if ([viewController isKindOfClass:[UIAlertController class]]){
             UIAlertController *alertController = ((UIAlertController *) viewController);
             UIViewController *presentingViewController=alertController.presentingViewController;
@@ -253,6 +247,12 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
                 viewController =presentingViewController;
                 NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController UIAlertController viewController=%@",viewController);
             }
+        } else if (viewController.presentedViewController != nil && !viewController.presentedViewController.isBeingDismissed && ![viewController.presentedViewController isKindOfClass:[UIAlertController class]]) {
+            viewController = viewController.presentedViewController;
+            NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController presentedViewController viewController=%@",viewController);
+        } else if (viewController.childViewControllers.count > 0) {
+            viewController = viewController.childViewControllers.lastObject;
+            NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController childViewControllers viewController=%@",viewController);
         } else {
             BOOL repeat = NO;
             for (UIView *view in viewController.view.subviews.reverseObjectEnumerator.allObjects) {
