@@ -1,5 +1,5 @@
 #import "FlutterAddtoappBridgePlugin.h"
-#import "FlutterAddtoappBridgePluginToast.h""
+#import "FlutterAddtoappBridgePluginToast.h"
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
@@ -75,12 +75,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             exit(0);
         } else if ([@"back" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
-            int count = [argumentsArray[0] intValue];
-            
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                [FlutterAddtoappBridgePlugin back:topViewController count:count];
-            });
-//            [FlutterAddtoappBridgePlugin back:topViewController count:count];
+            [FlutterAddtoappBridgePlugin back:topViewController count:[argumentsArray[0] intValue]];
             result(@(YES));
         } else if ([@"showToast" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
@@ -92,7 +87,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             NSString *entrypoint = argumentsArray[0];
             NSDictionary *argumentsMap = (NSDictionary *) argumentsArray[1];
             NSString *initialRoute = (NSString *) [argumentsMap valueForKey:@"initialRoute"];
-            BOOL destroyEngine = [[argumentsMap valueForKey:@"destroyEngine"] boolValue];
+            // BOOL destroyEngine = [[argumentsMap valueForKey:@"destroyEngine"] boolValue];
             BOOL transparent = [[argumentsMap valueForKey:@"transparent"] boolValue];
             [FlutterAddtoappBridgePlugin openContainer:topViewController entryPoint:entrypoint initialRoute:initialRoute registerPlugins:true transparent:transparent];
             result(@(YES));
@@ -336,7 +331,6 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
 + (FlutterEngine *_Nonnull)getEngineWithEntrypoint:(NSString *_Nonnull)entrypoint {
     return [FlutterAddtoappBridgePlugin getEngineWithEntrypoint:entrypoint initialRoute:@"/" registerPlugins:true];
 }
-
 
 + (FlutterEngine *_Nonnull)getEngineWithEntrypoint:(NSString *_Nonnull)entrypoint registerPlugins:(BOOL)registerPlugins{
     return [FlutterAddtoappBridgePlugin getEngineWithEntrypoint:entrypoint initialRoute:@"/" registerPlugins:registerPlugins];
