@@ -81,7 +81,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                     result.success(_result)
                 }
 
-                override fun error(errorCode: String?, errorMessage: String?, errorDetails: Any?) {
+                override fun error(errorCode: String, errorMessage: String?, errorDetails: Any?) {
                     result.error(errorCode, errorMessage, errorDetails)
                 }
 
