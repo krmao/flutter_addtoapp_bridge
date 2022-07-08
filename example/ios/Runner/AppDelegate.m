@@ -21,7 +21,7 @@
               NSString *url = [argumentsArray firstObject];
               NSLog(@"onCall open-> url==%@, arguments=%@", url, [argumentsArray objectAtIndex:1]);
               if([@"toast" isEqualToString:url]){
-                  [FlutterAddtoappBridgePlugin showToast:topmostViewController message:(NSString *)[argumentsArray objectAtIndex:1]];
+                  [FlutterAddtoappBridgePlugin showToast:(NSString *)[argumentsArray objectAtIndex:1]];
                   result(@"0");
               }else{
                   result([NSString stringWithFormat:@"-2 %@ is not support", url]);
@@ -34,6 +34,10 @@
           result(FlutterMethodNotImplemented);
       }
   }];
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (10.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [FlutterAddtoappBridgePlugin showToast:@"hahahahahahahahahhahahahahahahhahaha"];
+    });
     
   // Override point for customization after application launch.
   return [super application:application didFinishLaunchingWithOptions:launchOptions];

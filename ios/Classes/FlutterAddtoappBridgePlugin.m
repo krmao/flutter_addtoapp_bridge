@@ -1,4 +1,5 @@
 #import "FlutterAddtoappBridgePlugin.h"
+#import "FlutterAddtoappBridgePluginToast.h""
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
@@ -84,7 +85,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
         } else if ([@"showToast" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             NSString *message = argumentsArray[0];
-            [FlutterAddtoappBridgePlugin showToast:topViewController message:message];
+            [FlutterAddtoappBridgePlugin showToast:message];
             result(@(YES));
         } else if ([@"openContainer" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
@@ -184,10 +185,10 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
         
                         if([presentingViewController isKindOfClass:[UINavigationController class]]){
                             UIViewController *lastViewController = ((UINavigationController *)presentingViewController).viewControllers.lastObject;
-                            NSLog(@"back UIAlertController UINavigationController lastViewController",lastViewController);
+                            NSLog(@"back UIAlertController UINavigationController lastViewController=%@",lastViewController);
                             [FlutterAddtoappBridgePlugin back:lastViewController count:count];
                         }else{
-                            NSLog(@"back UIAlertController UIViewController", presentingViewController);
+                            NSLog(@"back UIAlertController UIViewController presentingViewController=%@", presentingViewController);
                             [FlutterAddtoappBridgePlugin back:presentingViewController count:count];
                         }
                         return;
@@ -302,24 +303,14 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
     }
 }
 
-+ (void)showToast:(UIViewController *_Nullable)viewController message:(NSString *_Nonnull)message {
-    NSLog(@"[FlutterAddtoappBridgePlugin] showToast viewController=%@",viewController);
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:nil
-                                                                   message:@""
-                                                            preferredStyle:UIAlertControllerStyleAlert];
-    UIView *firstSubview = alert.view.subviews.firstObject;
-    UIView *alertContentView = firstSubview.subviews.firstObject;
-    for (UIView *subSubView in alertContentView.subviews) {
-        subSubView.backgroundColor = [UIColor colorWithRed:0 / 255.0f green:0 / 255.0f blue:0 / 255.0f alpha:0.73f];
++ (void)showToast:(NSString *_Nullable)message {
+    if(message == nil || message.length <=0){
+        NSLog(@"[FlutterAddtoappBridgePlugin] showToast return; message is empty! message=%@",message);
+        return;
     }
-    NSMutableAttributedString *AS = [[NSMutableAttributedString alloc] initWithString:message];
-    [AS addAttribute:NSForegroundColorAttributeName value:[UIColor whiteColor] range:NSMakeRange(0, AS.length)];
-    [alert setValue:AS forKey:@"attributedTitle"];
-    [viewController presentViewController:alert animated:YES completion:nil];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [alert dismissViewControllerAnimated:YES completion:^{
-        }];
-    });
+    NSLog(@"[FlutterAddtoappBridgePlugin] showToast message=%@",message);
+    [FlutterAddtoappBridgePluginToast setToastIndicatorStyle:UIBlurEffectStyleDark];
+    [FlutterAddtoappBridgePluginToast showToastMessage:message];
 }
 
 + (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint{

@@ -15,7 +15,7 @@ typedef void (^OnGlobalMethodCall)(UIViewController *_Nullable topViewController
 
 + (UIViewController *_Nullable)topmostViewController;
 
-+ (void)showToast:(UIViewController *_Nullable)viewController message:(NSString *_Nonnull)message;
++ (void)showToast:(NSString *_Nullable)message;
 
 + (FlutterAddtoappBridgePlugin *_Nullable)getPlugin:(FlutterEngine *_Nullable)engine;
 
