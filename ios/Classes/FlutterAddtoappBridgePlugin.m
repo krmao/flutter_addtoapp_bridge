@@ -121,103 +121,8 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
     }
 }
 
-+ (void)back:(UIViewController *_Nullable)currentViewController count:(NSInteger)count {
-    NSLog(@"[FlutterAddtoappBridgePlugin] back start currentViewController=%@ count=%ld", currentViewController, count);
-    if (!currentViewController || (count <= 0 && count != -1)) {
-        return;
-    }
-    BOOL animated = YES;
-    [FlutterAddtoappBridgePlugin runBlockInMainThread:^{
-        NSUInteger finalCount = (NSUInteger) count;
-        UINavigationController *navigationController = currentViewController.navigationController;
-        if (navigationController) {
-            if (count == -1) {
-                NSLog(@"back popToRootViewControllerAnimated viewController=%@ navigationController=%@",currentViewController,navigationController);
-                [navigationController popToRootViewControllerAnimated:animated];
-            } else {
-                NSUInteger allCount = navigationController.viewControllers.count;
-                if (allCount == 1) {
-                    if(navigationController.presentingViewController != nil){
-                        NSLog(@"back isBeingPresented=true dismissViewControllerAnimated viewController=%@ navigationController=%@",currentViewController,navigationController);
-                        
-                        // [navigationController dismissViewControllerAnimated:YES completion:nil]; // not work
-                        [currentViewController dismissViewControllerAnimated:YES completion:nil];
-                    }else{
-                        NSLog(@"back exit currentViewController=%@",currentViewController);
-                        exit(0);
-                    }
-                } else {
-                    if (finalCount > allCount) {
-                        finalCount = 1;
-                    }
-                    NSLog(@"back popToViewController currentViewController=%@",currentViewController);
-                    UIViewController *toVC = navigationController.viewControllers[(allCount - finalCount - 1)];
-                    [navigationController popToViewController:toVC animated:animated];
-                }
-            }
-        } else {
-            UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
-            if (rootViewController == currentViewController) {
-                NSLog(@"back rootViewController != currentViewController exit currentViewController=%@",currentViewController);
-                exit(0);
-            } else {
-                if (count == -1) {
-                    NSLog(@"back rootViewController != currentViewController count == -1 currentViewController=%@",currentViewController);
-                    if (rootViewController.navigationController) {
-                        [rootViewController.navigationController popToRootViewControllerAnimated:true];
-                    } else {
-                        [[UIApplication sharedApplication].keyWindow.rootViewController dismissViewControllerAnimated:true completion:nil];
-                    };
-                } else {
-                    NSLog(@"back rootViewController != currentViewController count != -1 currentViewController=%@",currentViewController);
-                    NSLog(@"back rootViewController != currentViewController count != -1 if UIAlertController check is call showToast");
-                    
-                    if ([currentViewController isKindOfClass:[UIAlertController class]]){
-                        NSInteger tag = currentViewController.view.tag;
-                        NSLog(@"back rootViewController != currentViewController count != -1 if UIAlertController check is call showToast tag=%ld",tag);
-                        UIAlertController *alertController = ((UIAlertController *) currentViewController);
-                        UIViewController *presentingViewController=alertController.presentingViewController;
-        
-                        if([presentingViewController isKindOfClass:[UINavigationController class]]){
-                            UIViewController *lastViewController = ((UINavigationController *)presentingViewController).viewControllers.lastObject;
-                            NSLog(@"back UIAlertController UINavigationController lastViewController=%@",lastViewController);
-                            [FlutterAddtoappBridgePlugin back:lastViewController count:count];
-                        }else{
-                            NSLog(@"back UIAlertController UIViewController presentingViewController=%@", presentingViewController);
-                            [FlutterAddtoappBridgePlugin back:presentingViewController count:count];
-                        }
-                        return;
-                    }
-                    [currentViewController dismissViewControllerAnimated:YES completion:nil];
-                }
-            }
-        }
-    }];
-}
-
-+ (void)registerWithRegistrar:(NSObject <FlutterPluginRegistrar> *)registrar {
-    if(flutterEngineGroup==nil){
-        flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
-    }
-    FlutterMethodChannel *channel = [FlutterMethodChannel methodChannelWithName:@"flutter_addtoapp_bridge" binaryMessenger:[registrar messenger]];
-    FlutterAddtoappBridgePlugin *bridgePlugin = [[FlutterAddtoappBridgePlugin alloc] initWithChannel:channel];
-    [registrar addMethodCallDelegate:bridgePlugin channel:channel];
-    [registrar publish:bridgePlugin];
-    
-    NSLog(@"[FlutterAddtoappBridgePlugin] registerWithRegistrar bridgePlugin=%@ plugin.channel=%@ registrar=%@",bridgePlugin,channel,registrar);
-}
-
-+ (void)setOnGlobalMethodCall:(OnGlobalMethodCall _Nullable)onCall {
-    NSLog(@"[FlutterAddtoappBridgePlugin] setOnGlobalMethodCall");
-    onGlobalMethodCall = onCall;
-    
-    
-    if(flutterEngineGroup==nil) flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
-}
-
 + (UIViewController *_Nullable)topmostViewController {
     NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController start");
-    // NOTE: Adapted from various stray answers here:
     // https://stackoverflow.com/questions/6131205/iphone-how-to-find-topmost-view-controller/20515681
     UIViewController *viewController = nil;
     for (UIWindow *window in UIApplication.sharedApplication.windows.reverseObjectEnumerator.allObjects) {
@@ -267,6 +172,98 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
     }
     NSLog(@"[FlutterAddtoappBridgePlugin] topmostViewController end viewController=%@",viewController);
     return viewController;
+}
+
++ (void)back:(UIViewController *_Nullable)currentViewController count:(NSInteger)count {
+    NSLog(@"[FlutterAddtoappBridgePlugin] back start currentViewController=%@ count=%ld", currentViewController, count);
+    if (!currentViewController || (count <= 0 && count != -1)) {
+        return;
+    }
+    BOOL animated = YES;
+    [FlutterAddtoappBridgePlugin runBlockInMainThread:^{
+        NSUInteger finalCount = (NSUInteger) count;
+        UINavigationController *navigationController = currentViewController.navigationController;
+        if (navigationController) {
+            if (count == -1) {
+                NSLog(@"back popToRootViewControllerAnimated viewController=%@ navigationController=%@",currentViewController,navigationController);
+                [navigationController popToRootViewControllerAnimated:animated];
+            } else {
+                NSUInteger allCount = navigationController.viewControllers.count;
+                if (allCount == 1) {
+                    if(navigationController.presentingViewController != nil){
+                        NSLog(@"back isBeingPresented=true dismissViewControllerAnimated viewController=%@ navigationController=%@",currentViewController,navigationController);
+                        
+                        // [navigationController dismissViewControllerAnimated:YES completion:nil]; // not work
+                        [currentViewController dismissViewControllerAnimated:YES completion:nil];
+                    }else{
+                        NSLog(@"back exit currentViewController=%@",currentViewController);
+                        exit(0);
+                    }
+                } else {
+                    if (finalCount > allCount) {
+                        finalCount = 1;
+                    }
+                    NSLog(@"back popToViewController currentViewController=%@",currentViewController);
+                    UIViewController *toVC = navigationController.viewControllers[(allCount - finalCount - 1)];
+                    [navigationController popToViewController:toVC animated:animated];
+                }
+            }
+        } else {
+            UIViewController *rootViewController = [UIApplication sharedApplication].keyWindow.rootViewController;
+            if (rootViewController == currentViewController) {
+                NSLog(@"back rootViewController != currentViewController exit currentViewController=%@",currentViewController);
+                exit(0);
+            } else {
+                if (count == -1) {
+                    NSLog(@"back rootViewController != currentViewController count == -1 currentViewController=%@",currentViewController);
+                    if (rootViewController.navigationController) {
+                        [rootViewController.navigationController popToRootViewControllerAnimated:true];
+                    } else {
+                        [[UIApplication sharedApplication].keyWindow.rootViewController dismissViewControllerAnimated:true completion:nil];
+                    };
+                } else {
+                    NSLog(@"back rootViewController != currentViewController count != -1 currentViewController=%@",currentViewController);
+                    if ([currentViewController isKindOfClass:[UIAlertController class]]){
+                        
+                        UIAlertController *alertController = ((UIAlertController *) currentViewController);
+                        [alertController dismissViewControllerAnimated:YES completion:nil];
+                        
+                        UIViewController *presentingViewController=alertController.presentingViewController;
+                        if([presentingViewController isKindOfClass:[UINavigationController class]]){
+                            UIViewController *lastViewController = ((UINavigationController *)presentingViewController).viewControllers.lastObject;
+                            NSLog(@"back UIAlertController UINavigationController lastViewController=%@",lastViewController);
+                            [FlutterAddtoappBridgePlugin back:lastViewController count:count];
+                        }else{
+                            NSLog(@"back UIAlertController UIViewController presentingViewController=%@", presentingViewController);
+                            [FlutterAddtoappBridgePlugin back:presentingViewController count:count];
+                        }
+                        return;
+                    }
+                    [currentViewController dismissViewControllerAnimated:YES completion:nil];
+                }
+            }
+        }
+    }];
+}
+
++ (void)registerWithRegistrar:(NSObject <FlutterPluginRegistrar> *)registrar {
+    if(flutterEngineGroup==nil){
+        flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
+    }
+    FlutterMethodChannel *channel = [FlutterMethodChannel methodChannelWithName:@"flutter_addtoapp_bridge" binaryMessenger:[registrar messenger]];
+    FlutterAddtoappBridgePlugin *bridgePlugin = [[FlutterAddtoappBridgePlugin alloc] initWithChannel:channel];
+    [registrar addMethodCallDelegate:bridgePlugin channel:channel];
+    [registrar publish:bridgePlugin];
+    
+    NSLog(@"[FlutterAddtoappBridgePlugin] registerWithRegistrar bridgePlugin=%@ plugin.channel=%@ registrar=%@",bridgePlugin,channel,registrar);
+}
+
++ (void)setOnGlobalMethodCall:(OnGlobalMethodCall _Nullable)onCall {
+    NSLog(@"[FlutterAddtoappBridgePlugin] setOnGlobalMethodCall");
+    onGlobalMethodCall = onCall;
+    
+    
+    if(flutterEngineGroup==nil) flutterEngineGroup = [[FlutterEngineGroup alloc] initWithName:@"" project:nil];
 }
 
 + (FlutterAddtoappBridgePlugin *_Nullable)getPlugin:(FlutterEngine *_Nullable)engine {
