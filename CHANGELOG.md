@@ -66,7 +66,11 @@
 * exitApp
 * showToast
 * back
-* 
+
 ## 1.0.0
 
 * suppor multi engines
+
+## 1.0.1
+
+* newer ios toast, not use UIAlertController, fix topmostcontroller and back bug
