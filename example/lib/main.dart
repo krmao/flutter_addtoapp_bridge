@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
@@ -17,33 +16,25 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  String _platformVersion = 'UNKNOWN';
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
+  Future<void> onTap() async {
     String platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion = await FlutterAddtoappBridge.getPlatformVersion() ?? 'Unknown platform version';
+      platformVersion = await FlutterAddtoappBridge.getPlatformVersion() ?? 'UNKNOWN';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
 
-    try {
-      dynamic result = await FlutterAddtoappBridge.open("toast", "Hi, I am from flutter!");
-      if (kDebugMode) {
-        print("putPlatformValue result=$result");
-      }
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
+    FlutterAddtoappBridge.showToast("HI, I AM FROM FLUTTER!");
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
@@ -59,15 +50,21 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: const Text('flutter addtoapp bridge example'),
-        ),
+        appBar: AppBar(title: const Text('FLUTTER ADDTOAPP BRIDGE EXAMPLE')),
         body: Center(
           child: GestureDetector(
-            onTap: () {
-              initPlatformState();
-            },
-            child: Text('Running on: $_platformVersion\n'),
+            onTap: () => onTap(),
+            child: Container(
+              width: double.infinity,
+              margin: EdgeInsets.all(30.0),
+              padding: EdgeInsets.all(30.0),
+              child: Text(
+                'PLATFORM_VERSION: \n$_platformVersion\nCLICK TO SHOW TOAST AND PLATFORM_VERSION',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              color: Colors.blueGrey,
+            ),
           ),
         ),
       ),
