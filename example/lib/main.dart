@@ -33,6 +33,7 @@ class _MyAppState extends State<MyApp> {
             onTap: () => onTap(),
             child: Container(
               width: double.infinity,
+              decoration: BoxDecoration(color: Colors.blueGrey, borderRadius: BorderRadius.all(Radius.circular(5))),
               margin: EdgeInsets.all(30.0),
               padding: EdgeInsets.all(30.0),
               child: Text(
@@ -40,7 +41,6 @@ class _MyAppState extends State<MyApp> {
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              color: Colors.blueGrey,
             ),
           ),
         ),
@@ -53,21 +53,21 @@ class _MyAppState extends State<MyApp> {
     String platformVersion;
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
-    /*try {
+    try {
       platformVersion = await FlutterAddtoappBridge.getPlatformVersion() ?? 'UNKNOWN';
     } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }*/
+      platformVersion = 'FAILED';
+    }
 
     FlutterAddtoappBridge.showToast("HI, I AM FROM FLUTTER!");
 
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
-    // if (!mounted) return;
+    if (!mounted) return;
 
-    // setState(() {
-    //   _platformVersion = platformVersion;
-    // });
+    setState(() {
+      _platformVersion = platformVersion;
+    });
   }
 }
