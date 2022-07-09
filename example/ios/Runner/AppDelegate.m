@@ -11,7 +11,7 @@
       NSLog(@"onCall topViewController=%@, method=%@, arguments=%@", topmostViewController, call.method, call.arguments);
       
       if([@"callPlatform" isEqualToString:call.method]){
-          NSLog(@"onCall %@" ,[call.arguments class]);
+          NSLog(@"AppDelegate onCall %@" ,[call.arguments class]);
           NSArray *argumentsWithFunctionNameArray = (NSArray *)call.arguments;
           NSString *functionName = [argumentsWithFunctionNameArray firstObject];
           if([@"getPlatformVersion" isEqualToString:functionName]){
@@ -19,24 +19,22 @@
           }else if([@"open" isEqualToString:functionName]){
               NSArray *argumentsArray = (NSArray *)[argumentsWithFunctionNameArray objectAtIndex:1];
               NSString *url = [argumentsArray firstObject];
-              NSLog(@"onCall open-> url==%@, arguments=%@", url, [argumentsArray objectAtIndex:1]);
               if([@"toast" isEqualToString:url]){
                   [FlutterAddtoappBridgePlugin showToast:(NSString *)[argumentsArray objectAtIndex:1]];
                   result(@"0");
               }else{
-                  result([NSString stringWithFormat:@"-2 %@ is not support", url]);
+                  result(FlutterMethodNotImplemented);
               }
           }else{
-              result([NSString stringWithFormat:@"-1 %@ is not support", functionName]);
+              result(FlutterMethodNotImplemented);
           }
-          NSLog(@"onCall %lu" ,(unsigned long)[argumentsWithFunctionNameArray count]);
       }else{
           result(FlutterMethodNotImplemented);
       }
   }];
     
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (10.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [FlutterAddtoappBridgePlugin showToast:@"hahahahahahahahahhahahahahahahhahaha"];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t) (5.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [FlutterAddtoappBridgePlugin showToast:@"show toast delay 5 second on AppDelegate"];
     });
     
   // Override point for customization after application launch.
