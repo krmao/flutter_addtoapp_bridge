@@ -74,3 +74,7 @@
 ## 1.0.1
 
 * newer ios toast, not use UIAlertController, fix topmostcontroller and back bug
+
+## 1.0.2
+
+* exitApp

@@ -30,6 +30,7 @@ import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import java.lang.ref.SoftReference
+import kotlin.system.exitProcess
 
 
 /** FlutterAddtoappBridgePlugin */
@@ -235,7 +236,7 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                             }
                         }
                         "exitApp" -> {
-                            activityLinkedHashMap.forEach { it.value.get()?.finish() }
+                            exitApp()
                             result.success(true)
                         }
                         "back" -> {
@@ -297,6 +298,22 @@ class FlutterAddtoappBridgePlugin : FlutterPlugin, MethodCallHandler, ActivityAw
                     activityLinkedHashMap.remove(key)
                 }
             }
+        }
+
+        @JvmStatic
+        fun exitApp() {
+            for (index in activityLinkedHashMap.size - 1 downTo 0 step 1) {
+                val key = activityLinkedHashMap.keys.elementAt(index)
+                if (index == activityLinkedHashMap.size - 1) {
+                    activityLinkedHashMap[key]?.get()?.moveTaskToBack(true)
+                }
+                if (index == 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    activityLinkedHashMap[key]?.get()?.finishAndRemoveTask()
+                }
+                activityLinkedHashMap.remove(key)
+            }
+            android.os.Process.killProcess(android.os.Process.myPid());
+            exitProcess(0);
         }
 
         private var application: Application? = null

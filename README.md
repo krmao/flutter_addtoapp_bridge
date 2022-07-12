@@ -25,6 +25,7 @@ flutter addtoapp bridge and support multi flutter engines.
 
 * setOnGlobalMethodCall
 * back
+* exitApp
 * callFlutter
 * showToast
 * openContainer
@@ -42,6 +43,7 @@ flutter addtoapp bridge and support multi flutter engines.
 * callFlutter
 * runBlockInMainThread
 * back
+* exitApp
 * openContainer
 * getEngineWithEntrypoint
 * registerEnginePlugins

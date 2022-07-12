@@ -25,6 +25,8 @@ typedef void (^OnGlobalMethodCall)(UIViewController *_Nullable topViewController
 
 + (void)back:(UIViewController *_Nullable)currentViewController count:(NSInteger)count;
 
++ (void)exitApp;
+
 + (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint;
 
 + (void)openContainer:(UIViewController *_Nullable)viewController entryPoint:(NSString *_Nullable)entryPoint registerPlugins:(BOOL)registerPlugins;

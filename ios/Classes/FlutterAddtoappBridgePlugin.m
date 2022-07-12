@@ -72,7 +72,7 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
                 result(@([defaults doubleForKey:key]));
             }
         } else if ([@"exitApp" isEqualToString:functionName]) {
-            exit(0);
+            [FlutterAddtoappBridgePlugin exitApp];
         } else if ([@"back" isEqualToString:functionName]) {
             NSMutableArray *argumentsArray = (NSMutableArray *) argumentsWithFunctionNameArray[1];
             [FlutterAddtoappBridgePlugin back:topViewController count:[argumentsArray[0] intValue]];
@@ -244,6 +244,10 @@ static OnGlobalMethodCall onDefaultGlobalMethodCall = ^(UIViewController *_Nulla
             }
         }
     }];
+}
+
++ (void)exitApp {
+    exit(0);
 }
 
 + (void)registerWithRegistrar:(NSObject <FlutterPluginRegistrar> *)registrar {
