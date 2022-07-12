@@ -78,7 +78,15 @@
 ## 1.0.2
 
 * exitApp
-* 
+
 ## 1.0.3
 
 * [license unknown](https://github.com/dart-lang/pub-dev/issues/862)
+
+## 1.0.4
+
+* test
+
+## 1.0.5
+
+* LICENSE.md
